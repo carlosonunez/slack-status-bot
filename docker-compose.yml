@@ -1,0 +1,31 @@
+version: '2.2'
+services:
+  ruby:
+    build:
+      context: .
+      dockerfile: ruby.Dockerfile
+      args:
+        ENVIRONMENT: test
+    env_file: .env
+    environment:
+      ENVIRONMENT: "test"
+    volumes:
+      - $PWD:/app:ro,delegated # fix rspec slowness due to size of vendor dir
+    working_dir: /app
+    entrypoint: sh
+    command:
+      - "-c"
+      - "not meant to be run with the stack"
+  unit:
+    extends: ruby
+    entrypoint: rspec
+    environment:
+      ENVIRONMENT: "test"
+      LOAD_PATH: "/app/spec/unit;/app/spec;/app/lib"
+      AWS_DYNAMODB_ENDPOINT_URL: "http://dynamodb:8000"
+    command:
+      - --tag
+      - unit
+      - --fail-fast
+      - --format
+      - documentation
