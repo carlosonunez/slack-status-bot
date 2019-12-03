@@ -2,7 +2,7 @@ require 'rspec'
 require 'httparty'
 
 RSpec.configure do |config|
-  config.before(:all, :unit => true) do
+  config.before(:each, :unit => true) do
     $test_mocks = {
       not_in_air: {
         business: {
@@ -44,18 +44,19 @@ RSpec.configure do |config|
   end
 end
 
-module TestURI
-  def create_mocked_responses!(in_air:, is_business_trip:)
+module TestMocks
+  extend RSpec::Mocks::ExampleMethods
+  def self.create_mocked_responses!(in_air:, is_business_trip:)
     in_air_key = in_air ? :in_air : :not_in_air
     type_key = is_business_trip ? :business : :personal
     expect(HTTParty).to receive(:get)
-      .with(TestURI::TripIt.generate('/current_trip'),
+      .with(TestMocks::TripIt.generate('/current_trip'),
            headers: {'x-api-key': 'test-key'})
       .and_return({status: 'ok',
                    trip: {trip_name: $test_mocks[in_air_key][type_key][:trip_name],
-                          todays_flight: $test_mocks[in_air_key][type_key][:flights]}}).to_json
+                          todays_flight: $test_mocks[in_air_key][type_key][:flights]}}.to_json)
     expect(HTTParty).to receive(:post)
-      .with(TestURI::Slack.generate(
+      .with(TestMocks::Slack.generate(
         '/status',
         params: {
           text: $test_mocks[in_air_key][type_key][:status],
@@ -70,26 +71,26 @@ module TestURI
   end
 
   module Slack
-    def self.generate(endpoint, query_params: nil)
-      generate_uri('https://slack.apis.carlosnunez.me',
+    def self.generate(endpoint, params: nil)
+      TestMocks.generate_uri('https://slack.apis.carlosnunez.me',
                    endpoint,
-                   query_params: query_params)
+                   params: params)
     end
   end
 
   module TripIt
-    def self.generate(endpoint, query_params: nil)
-      generate_uri('https://tripit.apis.carlosnunez.me',
+    def self.generate(endpoint, params: nil)
+      TestMocks.generate_uri('https://tripit.apis.carlosnunez.me',
                    endpoint,
-                   query_params: query_params)
+                   params: params)
     end
   end
 
   private
-  def self.generate_uri(base_url, endpoint, query_params: nil)
+  def self.generate_uri(base_url, endpoint, params: nil)
     uri = base_url + '/' + endpoint
-    if !query_params.nil?
-      return uri + '?' + query_params.map{|k,v| "#{k}=#{v}"}.join('&')
+    if !params.nil?
+      return uri + '?' + params.map{|k,v| "#{k}=#{v}"}.join('&')
     end
     return uri
   end
