@@ -20,7 +20,6 @@ module SlackStatusBot
     def self.generate_status_from_trip(trip)
       trip_name = trip[:trip_name]
       flight = trip[:todays_flight]
-      current_city = trip[:current_city] || 'Home'
       if !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)
         emoji = ':plane:'
         status = "#{client}: #{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
@@ -28,9 +27,15 @@ module SlackStatusBot
       else
         case trip_name
         when /^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/
+          if trip_name.match?(/- Remote$/)
+            current_city = "Home"
+            emoji = ':house_with_garden:'
+          else
+            current_city = trip[:current_city]
+            emoji = self.get_emoji_for_city(current_city)
+          end
           client = trip_name.gsub("#{ENV['TRIPIT_WORK_COMPANY_NAME']}: ","").gsub(/ - Week.*$/,'')
           status = "#{client} @ #{current_city}"
-          emoji = self.get_emoji_for_city(current_city)
           yield(status, emoji)
         when /^Personal:/
           status = "Vacationing!"
