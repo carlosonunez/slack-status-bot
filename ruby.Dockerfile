@@ -2,8 +2,7 @@ FROM ruby:2.5-alpine
 MAINTAINER Carlos Nunez <dev@carlosnunez.me>
 ARG ENVIRONMENT
 
-RUN apk add --no-cache ruby-dev  ruby-nokogiri build-base libxml2-dev \
-libxslt-dev postgresql-dev sqlite sqlite-libs sqlite-dev less grep
+RUN apk add --no-cache less grep
 
 COPY Gemfile /
 RUN bundle install --gemfile /Gemfile
