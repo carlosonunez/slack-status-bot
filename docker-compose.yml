@@ -28,3 +28,12 @@ services:
       - --fail-fast
       - --format
       - documentation
+  update_status:
+    extends: ruby
+    entrypoint: ruby
+    environment:
+      ENVIRONMENT: "test"
+      LOAD_PATH: "/app/spec/unit;/app/spec;/app/lib"
+    env_file: .env
+    command:
+      - bin/update.rb
