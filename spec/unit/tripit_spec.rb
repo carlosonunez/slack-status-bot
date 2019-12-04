@@ -27,5 +27,31 @@ describe "Given a TripIt integration for Slack status bot" do
         end
       end
     end
+    
+    context "And I'm on a personal trip" do
+      example "It should show that I'm not around", :unit do
+          TestMocks::create_mocked_responses!(in_air: false,
+                                              is_business_trip: false)
+          expect(SlackStatusBot::TripIt.update!).to be true
+      end
+    end
+  end
+
+  context "When I'm in the air" do
+    context "And I'm in a business trip" do
+      example "It should show my flight info along with my current client", :unit do
+        TestMocks::create_mocked_responses!(in_air: true,
+                                            is_business_trip: true)
+        expect(SlackStatusBot::TripIt.update!).to be true
+      end
+    end
+    
+    context "And I'm on a personal trip" do
+      example "It should show that I'm not around", :unit do
+          TestMocks::create_mocked_responses!(in_air: true,
+                                              is_business_trip: false)
+          expect(SlackStatusBot::TripIt.update!).to be true
+      end
+    end
   end
 end

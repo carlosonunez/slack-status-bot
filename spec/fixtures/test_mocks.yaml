@@ -18,7 +18,7 @@ not_in_air:
     current_trip: 'Personal: Doing my thang'
     current_city: Anywhere, US
     status: Vacationing!
-    emoji: ":vacation:"
+    emoji: ":palm_tree:"
 in_air:
   business:
     flights:
@@ -28,7 +28,7 @@ in_air:
       depart_time: 123456789
       arrive_time: 234567890
     current_trip: 'Work: Test Client - Week n'
-    status: 'Test Client - AA1: JFK to LAX'
+    status: 'Test Client: AA1: JFK-LAX'
     current_city: Anywhere, US
     emoji: ":plane:"
   personal:
@@ -41,4 +41,4 @@ in_air:
     current_trip: 'Personal: Doing my thang'
     status: Vacationing!
     current_city: Anywhere, US
-    emoji: ":vacation:"
+    emoji: ":palm_tree:"
