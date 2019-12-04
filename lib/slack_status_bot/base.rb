@@ -18,13 +18,12 @@ module SlackStatusBot
         uri = [ENV['SLACK_API_URL'], 'status'].join('/')
         params = [ "text=#{status}", "emoji=#{emoji}" ].join('&')
         SlackStatusBot.logger.debug "POST to #{uri} with #{params}"
-        HTTParty.post(uri + '?' + params,
-                      headers: { 'x-api-key': ENV['SLACK_API_KEY'] }) do |response|
-          SlackStatusBot.logger.debug <<-MESSAGE
-          Response code from Slack: #{response.code}, Body: #{response.body}
-          MESSAGE
-          response.code == 200 ? true : false
-        end
+        response = HTTParty.post(uri + '?' + params,
+                      headers: { 'x-api-key': ENV['SLACK_API_KEY'] })
+        SlackStatusBot.logger.debug <<-MESSAGE
+        Response code from Slack: #{response.code}, Body: #{response.body}
+        MESSAGE
+        response.code == 200 ? true : false
       end
     end
   end

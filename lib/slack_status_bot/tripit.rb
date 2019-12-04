@@ -60,6 +60,13 @@ module SlackStatusBot
     end
 
     def self.get_emoji_for_city(city)
+      emoji = YAML.load(File.read(SlackStatusBot::CITY_EMOJIS_FILE))[city]
+      if !emoji
+        SlackStatusBot.logger.warn "No emoji found for city #{city}; sending the briefcase"
+        ':briefcase:'
+      else
+        emoji
+      end
     end
   end
 end

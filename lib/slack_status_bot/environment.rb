@@ -25,6 +25,10 @@ module SlackStatusBot
               return false
             end
         end
+        if !File.exist? SlackStatusBot::CITY_EMOJIS_FILE
+          SlackStatusBot.logger.error "Missing city emojis file."
+          return false
+        end
         return true
       end
     end

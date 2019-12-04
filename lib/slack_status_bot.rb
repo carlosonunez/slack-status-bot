@@ -6,6 +6,7 @@ require 'slack_status_bot/environment'
 require 'slack_status_bot/tripit'
 
 module SlackStatusBot
+  CITY_EMOJIS_FILE = './include/city_emojis.yml'
   @logger = Logger.new(STDOUT)
   @logger.level = ENV['LOG_LEVEL'] || Logger::WARN
   def self.logger
