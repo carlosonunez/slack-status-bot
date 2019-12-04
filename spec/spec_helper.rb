@@ -1,5 +1,6 @@
 require 'rspec'
 require 'httparty'
+require 'slack_status_bot'
 
 RSpec.configure do |config|
   config.before(:each, :unit => true) do
@@ -8,11 +9,17 @@ RSpec.configure do |config|
         business: {
           flights: {},
           current_trip: 'Work: Test Client - Week n',
-          expected_status: ':cool: Test Client @ Home'
+          current_city: 'Anywhere, US',
+          status: 'Test Client @ Anywhere, US',
+          emoji: ':cool:',
+          expected_status: ':cool: Test Client @ Anywhere, US'
         },
         personal: {
           flights: {},
           current_trip: 'Personal: Doing my thang',
+          current_city: 'Anywhere, US',
+          status: 'Vacationing!',
+          emoji: ':vacation:',
           expected_status: ':vacation: Vacationing!'
         }
       },
@@ -26,6 +33,9 @@ RSpec.configure do |config|
             arrive_time: 234567890
           },
           current_trip: 'Work: Test Client - Week n',
+          status: 'Test Client - AA1: JFK to LAX',
+          current_city: 'Anywhere, US',
+          emoji: ':plane:',
           expected_status: ':plane: Test Client - AA1 - JFK to LAX'
         },
         personal: {
@@ -37,6 +47,9 @@ RSpec.configure do |config|
             arrive_time: 234567890
           },
           current_trip: 'Personal: Doing my thang',
+          status: 'Vacationing!',
+          current_city: 'Anywhere, US',
+          emoji: ':vacation:',
           expected_status: ':vacation: Vacationing!'
         }
       },
@@ -51,38 +64,36 @@ module TestMocks
     type_key = is_business_trip ? :business : :personal
     expect(HTTParty).to receive(:get)
       .with(TestMocks::TripIt.generate('/current_trip'),
-           headers: {'x-api-key': 'test-key'})
-      .and_return({status: 'ok',
-                   trip: {trip_name: $test_mocks[in_air_key][type_key][:trip_name],
-                          todays_flight: $test_mocks[in_air_key][type_key][:flights]}}.to_json)
+           headers: {'x-api-key': ENV['MOCKED_TRIPIT_API_KEY']})
+      .and_return(self.generate_mocked_response({status: 'ok',
+                   trip: {trip_name: $test_mocks[in_air_key][type_key][:current_trip],
+                          current_city: $test_mocks[in_air_key][type_key][:current_city],
+                          todays_flight: $test_mocks[in_air_key][type_key][:flights]}}.to_json))
     expect(HTTParty).to receive(:post)
       .with(TestMocks::Slack.generate(
         '/status',
         params: {
           text: $test_mocks[in_air_key][type_key][:status],
           emoji: $test_mocks[in_air_key][type_key][:emoji]
-        }))
-      .and_return({status: 'ok',
+        }), headers: {'x-api-key': ENV['MOCKED_SLACK_API_KEY']})
+      .and_return(self.generate_mocked_response({status: 'ok',
                    changed: {old: ':rocket: Old status',
-                             new: [
-                               $test_mocks[in_air_key][type_key][:status],
-                               $test_mocks[in_air_key][type_key][:emoji]
-                             ].join(' ')}}.to_json)
+                             new: $test_mocks[in_air_key][type_key][:expected_status]}}.to_json))
   end
 
   module Slack
     def self.generate(endpoint, params: nil)
-      TestMocks.generate_uri('https://slack.apis.carlosnunez.me',
-                   endpoint,
-                   params: params)
+      TestMocks.generate_uri(ENV['MOCKED_SLACK_API_URL'],
+                             endpoint.gsub(/^\//,''),
+                             params: params)
     end
   end
 
   module TripIt
     def self.generate(endpoint, params: nil)
-      TestMocks.generate_uri('https://tripit.apis.carlosnunez.me',
-                   endpoint,
-                   params: params)
+      TestMocks.generate_uri(ENV['MOCKED_TRIPIT_API_URL'],
+                             endpoint.gsub(/^\//,''),
+                             params: params)
     end
   end
 
@@ -93,5 +104,9 @@ module TestMocks
       return uri + '?' + params.map{|k,v| "#{k}=#{v}"}.join('&')
     end
     return uri
+  end
+
+  def self.generate_mocked_response(body)
+    double(HTTParty::Response, code: 200, body: body)
   end
 end
