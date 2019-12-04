@@ -24,4 +24,3 @@ jobs:
 
       - name: Update my status
         run: ./docker-compose run --rm update_status
-        env_file: .env
