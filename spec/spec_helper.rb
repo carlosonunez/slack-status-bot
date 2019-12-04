@@ -1,56 +1,13 @@
 require 'rspec'
 require 'httparty'
+require 'yaml'
 require 'slack_status_bot'
 
 RSpec.configure do |config|
   config.before(:each, :unit => true) do
+    $test_mocks = YAML.load(File.read('./spec/fixtures/test_mocks.yaml'),
+                            symbolize_names: true)
     TestMocks.mock_emojis_file!
-    $test_mocks = {
-      not_in_air: {
-        business: {
-          flights: {},
-          current_trip: 'Work: Test Client - Week n',
-          current_city: 'Anywhere, US',
-          status: 'Test Client @ Anywhere, US',
-          emoji: ':cool:'
-        },
-        personal: {
-          flights: {},
-          current_trip: 'Personal: Doing my thang',
-          current_city: 'Anywhere, US',
-          status: 'Vacationing!',
-          emoji: ':vacation:'
-        }
-      },
-      in_air: {
-        business: {
-          flights: {
-            flight_number: 'AA1',
-            origin: 'JFK',
-            destination: 'LAX',
-            depart_time: 123456789,
-            arrive_time: 234567890
-          },
-          current_trip: 'Work: Test Client - Week n',
-          status: 'Test Client - AA1: JFK to LAX',
-          current_city: 'Anywhere, US',
-          emoji: ':plane:'
-        },
-        personal: {
-          flights: {
-            flight_number: 'AA1',
-            origin: 'JFK',
-            destination: 'LAX',
-            depart_time: 123456789,
-            arrive_time: 234567890
-          },
-          current_trip: 'Personal: Doing my thang',
-          status: 'Vacationing!',
-          current_city: 'Anywhere, US',
-          emoji: ':vacation:'
-        }
-      },
-    }
   end
 end
 
@@ -62,14 +19,19 @@ module TestMocks
       .and_return('Anywhere, US: ":cool:"')
   end
 
-  def self.create_mocked_responses!(in_air:, is_business_trip:)
+  def self.create_mocked_responses!(in_air:, is_business_trip:, remote: false)
     in_air_key = in_air ? :in_air : :not_in_air
     type_key = is_business_trip ? :business : :personal
-    current_trip = $test_mocks[in_air_key][type_key][:current_trip]
-    current_city = $test_mocks[in_air_key][type_key][:current_city]
-    flights = $test_mocks[in_air_key][type_key][:flights]
-    status = $test_mocks[in_air_key][type_key][:status]
-    emoji = $test_mocks[in_air_key][type_key][:emoji]
+    remote_key = remote ? :remote : :not_remote
+    this_response = $test_mocks[in_air_key][type_key]
+    if this_response.has_key? remote_key
+      this_response = this_response[remote_key]
+    end
+    current_trip = this_response[:current_trip]
+    current_city = this_response[:current_city]
+    flights = this_response[:flights]
+    status = this_response[:status]
+    emoji = this_response[:emoji]
     expected_status = status + " " + emoji
     expect(HTTParty).to receive(:get)
       .with(TestMocks::TripIt.generate('/current_trip'),
