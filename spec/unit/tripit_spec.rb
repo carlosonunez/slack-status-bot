@@ -7,6 +7,16 @@ require 'spec_helper'
 # These mocks are generated in spec/spec_helper.rb. Check that file out to
 # see what's going on.
 describe "Given a TripIt integration for Slack status bot" do
+  context "When it's after hours" do
+    example "It should show that my availability is limited", :unit do
+      TestMocks::create_mocked_responses!(in_air: false,
+                                          is_business_trip: true,
+                                          remote: false,
+                                          after_hours: true,
+                                          mocked_time: 1575447225)
+      expect(SlackStatusBot::TripIt.update!).to be true
+    end
+  end
   context "When I'm not in the air" do
     context "And I'm in a business trip" do
       context "And I'm not remote" do

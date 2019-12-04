@@ -22,7 +22,10 @@ module TestMocks
   def self.create_mocked_responses!(in_air:, 
                                     is_business_trip:,
                                     remote: false,
-                                    holiday_party: false)
+                                    holiday_party: false,
+                                    after_hours: false,
+                                    mocked_time: 1575660000)
+    allow(Time).to receive(:now).and_return(Time.at(mocked_time))
     in_air_key = in_air ? :in_air : :not_in_air
     type_key = is_business_trip ? :business : :personal
     if holiday_party
@@ -37,6 +40,9 @@ module TestMocks
     current_city = this_response[:current_city]
     flights = this_response[:flights]
     status = this_response[:status]
+    if after_hours
+      status = status + " (My work phone is off. Availability will be limited.)"
+    end
     emoji = this_response[:emoji]
     expected_status = status + " " + emoji
     expect(HTTParty).to receive(:get)

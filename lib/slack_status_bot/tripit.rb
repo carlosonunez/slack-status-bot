@@ -7,6 +7,9 @@ module SlackStatusBot
     def self.update!
       self.fetch_current_trip do |trip|
         self.generate_status_from_trip(trip) do |status, emoji|
+          if self.limited_availability? and !self.weekend?
+            status = status + " (My work phone is off. Availability will be limited.)"
+          end
           return self.post_new_status!(status: status, emoji: emoji) ||
             raise("Unable to post status; see logs")
         end
@@ -17,8 +20,32 @@ module SlackStatusBot
     end
 
     private
+    def self.weekend?
+      weekend_days = [ 'Friday', 'Saturday', 'Sunday' ]
+      today = Time.now.getlocal('-06:00').strftime("%A")
+      weekend_days.include? today
+    end
+
+    def self.limited_availability?
+      current_hour = Time.now.getlocal('-06:00').hour # TODO: Get my current time zone from TripIt
+      start_hour_of_working_day = 9
+      end_hour_of_working_day = 17
+      current_hour <= start_hour_of_working_day || current_hour >= end_hour_of_working_day
+    end
+
     def self.generate_status_from_trip(trip)
       trip_name = trip[:trip_name]
+      if trip_name.nil?
+        if self.weekend?
+          status = "Yay, weekend!"
+          emoji = ':sunglasses:'
+          yield(status,emoji)
+        else
+          status = "on the beach"
+          emoji = ':sunglasses:'
+          yield(status,emoji)
+        end
+      end
       flight = trip[:todays_flight]
       if !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)
         flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
