@@ -19,9 +19,15 @@ module TestMocks
       .and_return('Anywhere, US: ":cool:"')
   end
 
-  def self.create_mocked_responses!(in_air:, is_business_trip:, remote: false)
+  def self.create_mocked_responses!(in_air:, 
+                                    is_business_trip:,
+                                    remote: false,
+                                    holiday_party: false)
     in_air_key = in_air ? :in_air : :not_in_air
     type_key = is_business_trip ? :business : :personal
+    if holiday_party
+      type_key = :holiday_party
+    end
     remote_key = remote ? :remote : :not_remote
     this_response = $test_mocks[in_air_key][type_key]
     if this_response.has_key? remote_key

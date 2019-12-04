@@ -35,6 +35,15 @@ describe "Given a TripIt integration for Slack status bot" do
           expect(SlackStatusBot::TripIt.update!).to be true
       end
     end
+
+    context "And I'm partying it up!" do
+      example "It should show that beast mode is in progress", :unit do
+          TestMocks::create_mocked_responses!(in_air: false,
+                                              is_business_trip: false,
+                                              holiday_party: true)
+          expect(SlackStatusBot::TripIt.update!).to be true
+      end
+    end
   end
 
   context "When I'm in the air" do
@@ -50,6 +59,15 @@ describe "Given a TripIt integration for Slack status bot" do
       example "It should show that I'm not around", :unit do
           TestMocks::create_mocked_responses!(in_air: true,
                                               is_business_trip: false)
+          expect(SlackStatusBot::TripIt.update!).to be true
+      end
+    end
+
+    context "And I'm about to get absolutely shitty!" do
+      example "It should show that beast mode is in flight", :unit do
+          TestMocks::create_mocked_responses!(in_air: true,
+                                              is_business_trip: false,
+                                              holiday_party: true)
           expect(SlackStatusBot::TripIt.update!).to be true
       end
     end

@@ -21,12 +21,26 @@ module SlackStatusBot
       trip_name = trip[:trip_name]
       flight = trip[:todays_flight]
       if !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)
-        client = trip_name.gsub("#{ENV['TRIPIT_WORK_COMPANY_NAME']}: ","").gsub(/ - Week.*$/,'')
+        flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
         emoji = ':plane:'
-        status = "#{client}: #{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
-        yield(status, emoji)
+        case trip_name
+        when /Holiday Party/
+          status = "On my way to the holiday party! #{flight_info}"
+          yield(status, emoji)
+        when /^#{ENV['TRIPIT_WORK_COMPANY_NAME']}/
+          client = trip_name.gsub("#{ENV['TRIPIT_WORK_COMPANY_NAME']}: ","").gsub(/ - Week.*$/,'')
+          status = "#{client}: #{flight_info}"
+          yield(status, emoji)
+        else
+          SlackStatusBot.logger.warn("This trip doesn't have a valid name: #{trip_name}")
+          yield(nil)
+        end
       else
         case trip_name
+        when /Holiday Party/
+          status = "Partying it up!"
+          emoji = ":tophat:"
+          yield(status, emoji)
         when /^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/
           if trip_name.match?(/- Remote$/)
             current_city = "Home"
@@ -41,10 +55,6 @@ module SlackStatusBot
         when /^Personal:/
           status = "Vacationing!"
           emoji = ":palm_tree:"
-          yield(status, emoji)
-        when /Holiday Party/
-          status = "Party Time!"
-          emoji = ":tophat:"
           yield(status, emoji)
         else
           SlackStatusBot.logger.warn("This trip doesn't have a valid name: #{trip_name}")
