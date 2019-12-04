@@ -12,7 +12,7 @@ module SlackStatusBot
         return false
       else
         search_pattern = "ENV\\['\[A-Z0-9_\]+'\\]"
-        `egrep --only-matching --no-filename --recursive "#{search_pattern}"`
+        `egrep --only-matching --no-filename --recursive "#{search_pattern}" lib`
           .split("\n")
           .uniq
           .map {|match| match.gsub(/ENV\['(.*)'\]/,'\1')}

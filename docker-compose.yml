@@ -33,7 +33,7 @@ services:
     entrypoint: ruby
     environment:
       ENVIRONMENT: "test"
-      LOAD_PATH: "/app/spec/unit;/app/spec;/app/lib"
+      LOAD_PATH: "/app/lib"
     env_file: .env
     command:
       - bin/update.rb

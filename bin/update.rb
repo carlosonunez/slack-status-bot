@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 $LOAD_PATH.unshift('./lib')
+require 'slack_status_bot'
 
-require 'slack-update-bot'
 enabled_integrations = [
   'TripIt'
 ]
