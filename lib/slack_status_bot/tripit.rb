@@ -96,7 +96,7 @@ module SlackStatusBot
         'x-api-key': ENV['TRIPIT_API_KEY']
       })
       if response.code.to_i != 200
-        SlackStatusBot::Logger.error("Failed to get current trip: #{response.body}")
+        SlackStatusBot.logger.error("Failed to get current trip: #{response.body}")
         return nil
       end
       yield JSON.parse(response.body, symbolize_names: true)[:trip]
