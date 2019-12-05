@@ -23,7 +23,11 @@ module SlackStatusBot
         SlackStatusBot.logger.debug <<-MESSAGE
         Response code from Slack: #{response.code}, Body: #{response.body}
         MESSAGE
-        response.code == 200 ? true : false
+        if response.code != 200
+          SlackStatusBot.logger.error "Unable to post status update: #{response.body}"
+          return false
+        end
+        return true
       end
     end
   end

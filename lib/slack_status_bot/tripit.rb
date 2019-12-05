@@ -49,7 +49,7 @@ module SlackStatusBot
       flight = trip[:todays_flight]
       if !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)
         flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
-        emoji = ':plane:'
+        emoji = ':airplane:'
         case trip_name
         when /Holiday Party/
           status = "On my way to the holiday party! #{flight_info}"
