@@ -20,19 +20,6 @@ module SlackStatusBot
     end
 
     private
-    def self.weekend?
-      weekend_days = [ 'Friday', 'Saturday', 'Sunday' ]
-      today = Time.now.getlocal('-06:00').strftime("%A")
-      weekend_days.include? today
-    end
-
-    def self.limited_availability?
-      current_hour = Time.now.getlocal('-06:00').hour # TODO: Get my current time zone from TripIt
-      start_hour_of_working_day = 9
-      end_hour_of_working_day = 17
-      current_hour <= start_hour_of_working_day || current_hour >= end_hour_of_working_day
-    end
-
     def self.generate_status_from_trip(trip)
       trip_name = trip[:trip_name]
       if trip_name.nil?
