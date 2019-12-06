@@ -41,8 +41,8 @@ module SlackStatusBot
           emoji = ':sunglasses:'
           yield(status,emoji)
         else
-          status = "on the beach"
-          emoji = ':sunglasses:'
+          status = "at home"
+          emoji = ':house_with_garden:'
           yield(status,emoji)
         end
       end

@@ -36,7 +36,7 @@ in_air:
     current_trip: 'Work: Test Client - Week n'
     status: 'Test Client: AA1: JFK-LAX'
     current_city: Anywhere, US
-    emoji: ":plane:"
+    emoji: ":airplane:"
   personal:
     flights:
       flight_number: AA1
