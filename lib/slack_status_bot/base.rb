@@ -23,7 +23,7 @@ module SlackStatusBot
         current_hour = Time.now.getlocal('-06:00').hour # TODO: Get my current time zone from TripIt
         start_hour_of_working_day = 9
         end_hour_of_working_day = 17
-        current_hour <= start_hour_of_working_day || current_hour >= end_hour_of_working_day
+        current_hour < start_hour_of_working_day || current_hour >= end_hour_of_working_day
       end
 
     end

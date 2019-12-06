@@ -41,7 +41,7 @@ module TestMocks
     flights = this_response[:flights]
     status = this_response[:status]
     if after_hours
-      status = status + " (My work phone is off. Availability will be limited.)"
+      status = status + " (My work phone is off. Availability might be limited.)"
     end
     emoji = this_response[:emoji]
     expected_status = status + " " + emoji

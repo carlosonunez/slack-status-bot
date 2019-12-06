@@ -8,7 +8,7 @@ module SlackStatusBot
       self.fetch_current_trip do |trip|
         self.generate_status_from_trip(trip) do |status, emoji|
           if self.limited_availability? and !self.weekend?
-            status = status + " (My work phone is off. Availability will be limited.)"
+            status = status + " (My work phone is off. Availability might be limited.)"
           end
           return self.post_new_status!(status: status, emoji: emoji) ||
             raise("Unable to post status; see logs")
