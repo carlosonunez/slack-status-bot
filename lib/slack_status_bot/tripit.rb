@@ -23,15 +23,9 @@ module SlackStatusBot
     def self.generate_status_from_trip(trip)
       trip_name = trip[:trip_name]
       if trip_name.nil?
-        if self.weekend?
-          status = "Yay, weekend!"
-          emoji = ':sunglasses:'
-          yield(status,emoji)
-        else
-          status = "at home"
-          emoji = ':house_with_garden:'
-          yield(status,emoji)
-        end
+        status = "at home"
+        emoji = ':house_with_garden:'
+        yield(status,emoji)
       end
       flight = trip[:todays_flight]
       if !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)

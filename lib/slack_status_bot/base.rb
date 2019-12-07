@@ -4,6 +4,11 @@ module SlackStatusBot
   module Base
     module Mixins
       def post_new_status!(status:, emoji: nil)
+        if self.weekend?
+          status = "Yay, weekend!"
+          emoji = ':sunglasses:'
+          SlackStatusBot.logger.info "About to yield cuz weekend"
+        end
         API.post_status!(status, emoji)
       end
 
@@ -16,7 +21,7 @@ module SlackStatusBot
         weekend_days = [ 'Saturday', 'Sunday' ]
         today = Time.now.getlocal('-06:00').strftime("%A") #TODO: Timezone from TripIt
         current_hour = Time.now.getlocal('-06:00').hour
-        weekend_days.include? today || today == 'Friday' and current_hour >= 17
+        weekend_days.include? today or (today == 'Friday' and current_hour >= 17)
       end
 
       def limited_availability?
@@ -30,6 +35,7 @@ module SlackStatusBot
 
     module API
       def self.post_status!(status, emoji)
+        SlackStatusBot.logger.info "Shipping status: #{emoji} #{status}"
         uri = [ENV['SLACK_API_URL'], 'status'].join('/')
         params = [ "text=#{status}", "emoji=#{emoji}" ].join('&')
         SlackStatusBot.logger.debug "POST to #{uri} with #{params}"
