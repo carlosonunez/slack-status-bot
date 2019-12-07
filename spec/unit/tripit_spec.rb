@@ -7,6 +7,34 @@ require 'spec_helper'
 # These mocks are generated in spec/spec_helper.rb. Check that file out to
 # see what's going on.
 describe "Given a TripIt integration for Slack status bot" do
+  context "When it's the weekend" do
+    example "it should show that it's the weekend after 5pm CT Friday", :unit do
+      mocked_friday_afterhours = 1576278060 # Time is in UTC.
+      TestMocks::create_mocked_responses!(in_air: false,
+                                          is_business_trip: true,
+                                          remote: false,
+                                          after_hours: true,
+                                          weekend: true,
+                                          mocked_time: Time.at(mocked_friday_afterhours))
+      expect(SlackStatusBot::TripIt.update!).to be true
+    end
+
+    example "It should show that it's the weekend", :unit do
+      # Times are in UTC.
+      mocked_saturday = 1575698400
+      mocked_sunday = 1575784800
+      [ mocked_saturday, mocked_sunday ].each do |day|
+        TestMocks::create_mocked_responses!(in_air: false,
+                                            is_business_trip: true,
+                                            remote: false,
+                                            after_hours: true,
+                                            weekend: true,
+                                            mocked_time: Time.at(day))
+        expect(SlackStatusBot::TripIt.update!).to be true
+      end
+    end
+  end
+
   context "When it's after hours" do
     example "It should show that my availability is limited", :unit do
       TestMocks::create_mocked_responses!(in_air: false,
