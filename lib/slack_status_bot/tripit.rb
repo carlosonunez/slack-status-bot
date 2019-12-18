@@ -80,7 +80,9 @@ module SlackStatusBot
         SlackStatusBot.logger.error("Failed to get current trip: #{response.body}")
         return nil
       end
-      yield JSON.parse(response.body, symbolize_names: true)[:trip]
+      trip = JSON.parse(response.body, symbolize_names: true)[:trip]
+      SlackStatusBot.logger.debug("Current trip: #{trip}")
+      yield trip
     end
 
     def self.get_emoji_for_city(city)
