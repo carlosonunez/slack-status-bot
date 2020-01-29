@@ -37,6 +37,7 @@ module SlackStatusBot
           yield(status, emoji)
         when /Contino Day/
           status = "On my way to Contino Day! #{flight_info}"
+          emoji = ":continopug:"
           yield(status, emoji)
         when /^#{ENV['TRIPIT_WORK_COMPANY_NAME']}/
           client = trip_name.gsub("#{ENV['TRIPIT_WORK_COMPANY_NAME']}: ","").gsub(/ - Week.*$/,'')
@@ -55,6 +56,7 @@ module SlackStatusBot
         when /Contino Day/
           status = "Contino Day"
           emoji = ":continopug:"
+          yield(status, emoji)
         when /^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/
           if trip_name.match?(/- Remote$/)
             current_city = "Home"
