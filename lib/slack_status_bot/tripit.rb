@@ -22,11 +22,8 @@ module SlackStatusBot
     private
     def self.generate_status_from_trip(trip)
       trip_name = trip[:trip_name]
-      if trip_name.nil?
-        status = "at home"
-        emoji = ':house_with_garden:'
-        yield(status,emoji)
-      end
+      raise "No trip found." if trip.nil? or trip_name.nil?
+      
       flight = trip[:todays_flight]
       if !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)
         flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
@@ -44,8 +41,7 @@ module SlackStatusBot
           status = "#{client}: #{flight_info}"
           yield(status, emoji)
         else
-          SlackStatusBot.logger.warn("This trip doesn't have a valid name: #{trip_name}")
-          yield(nil)
+          raise "This trip doesn't have a valid name. Fix it in TripIt."
         end
       else
         case trip_name
@@ -73,8 +69,7 @@ module SlackStatusBot
           emoji = ":palm_tree:"
           yield(status, emoji)
         else
-          SlackStatusBot.logger.warn("This trip doesn't have a valid name: #{trip_name}")
-          yield(nil)
+          raise "This trip doesn't have a valid name. Fix it in TripIt."
         end
       end
     end
