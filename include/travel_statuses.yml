@@ -17,7 +17,7 @@
 - status_regexp: "^Contino:.* - Week [0-9]{1,}$"
   flying:
     status: "<%= client(trip_name) %>: <%= flight_info %>"
-    emoji: ":plane:"
+    emoji: ":airplane:"
   not_flying:
     status: "<%= client(trip_name) %> @ <%= current_city %>"
     emoji: "<%= city_emoji %>"

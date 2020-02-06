@@ -21,7 +21,7 @@ module SlackStatusBot
     private
     def self.currently_flying_on_work_trip?(trip)
       flight = trip[:todays_flight]
-      !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)
+      !flight.empty?
     end
 
     def self.get_status_and_emoji(trip)
