@@ -7,13 +7,12 @@ module SlackStatusBot
     def self.update!
       self.fetch_current_trip do |trip|
         self.generate_status_from_trip(trip) do |status, emoji|
+          return self.post_default_status! if status.nil?
           if self.limited_availability? and !self.weekend?
             status = status + " (My work phone is off. Availability might be limited.)"
           end
-          return self.post_new_status!(status: status, emoji: emoji) ||
-            raise("Unable to post status; see logs")
+          return self.post_new_status!(status: status, emoji: emoji)
         end
-        raise("Unable to generate a status")
       end
       SlackStatusBot.logger.warn "No trip found. Posting default status."
       self.post_default_status!
@@ -45,29 +44,13 @@ module SlackStatusBot
         end
       else
         case trip_name
-        when /Holiday Party/
-          status = "Partying it up!"
-          emoji = ":tophat:"
-          yield(status, emoji)
-        when /Contino Day/
-          status = "Contino Day"
-          emoji = ":continopug:"
-          yield(status, emoji)
-        when /^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/
-          if trip_name.match?(/- Remote$/)
-            current_city = "Home"
-            emoji = ':house_with_garden:'
-          else
-            current_city = trip[:current_city]
-            emoji = self.get_emoji_for_city(current_city)
-          end
-          client = trip_name.gsub("#{ENV['TRIPIT_WORK_COMPANY_NAME']}: ","").gsub(/ - Week.*$/,'')
-          status = "#{client} @ #{current_city}"
-          yield(status, emoji)
-        when /^Personal:/
+        when /^Vacation:/
           status = "Vacationing!"
           emoji = ":palm_tree:"
           yield(status, emoji)
+        when /^Personal:/
+          SlackStatusBot.logger.warn "This is a personal trip; no status needed."
+          yield(nil)
         else
           raise "This trip doesn't have a valid name. Fix it in TripIt."
         end
