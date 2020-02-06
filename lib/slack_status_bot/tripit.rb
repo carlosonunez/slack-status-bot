@@ -19,42 +19,52 @@ module SlackStatusBot
     end
 
     private
-    def self.generate_status_from_trip(trip)
-      trip_name = trip[:trip_name]
-      raise "No trip found." if trip.nil? or trip_name.nil?
-      
+    def self.currently_flying_on_work_trip?(trip)
       flight = trip[:todays_flight]
-      if !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)
-        flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
-        emoji = ':airplane:'
-        case trip_name
-        when /Holiday Party/
-          status = "On my way to the holiday party! #{flight_info}"
-          yield(status, emoji)
-        when /Contino Day/
-          status = "On my way to Contino Day! #{flight_info}"
-          emoji = ":continopug:"
-          yield(status, emoji)
-        when /^#{ENV['TRIPIT_WORK_COMPANY_NAME']}/
-          client = trip_name.gsub("#{ENV['TRIPIT_WORK_COMPANY_NAME']}: ","").gsub(/ - Week.*$/,'')
-          status = "#{client}: #{flight_info}"
-          yield(status, emoji)
-        else
-          raise "This trip doesn't have a valid name. Fix it in TripIt."
-        end
-      else
-        case trip_name
-        when /^Vacation:/
-          status = "Vacationing!"
-          emoji = ":palm_tree:"
-          yield(status, emoji)
-        when /^Personal:/
-          SlackStatusBot.logger.warn "This is a personal trip; no status needed."
-          yield(nil)
-        else
-          raise "This trip doesn't have a valid name. Fix it in TripIt."
-        end
-      end
+      !flight.empty? and trip_name.match?(/^#{ENV['TRIPIT_WORK_COMPANY_NAME']}:/)
+    end
+
+    def self.get_status_and_emoji(trip)
+      @statuses ||= YAML.load(File.read("include/travel_statuses.yml"),
+                             symbolize_names: true)
+      raise "No statuses found." if @statuses.nil?
+      trip_name = trip[:trip_name]
+      found_status =
+        @statuses.select do |status_info|
+          Regexp.new(status_info[:status_regexp]).match? trip_name
+        end.first
+      SlackStatusBot.logger.warn("Trip name: #{trip_name}, Found: #{found_status}")
+      return nil if found_status.empty?
+      return found_status
+    end
+
+    def self.client(trip_name)
+      trip_name.gsub(/^\w+:(.*)- Week.*$/,'\1').strip
+    end
+
+    def self.generate_status_from_trip(trip)
+      raise "No trip found." if trip.nil?
+
+      flight = trip[:todays_flight]
+      flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
+      current_city = trip[:current_city]
+      template_variables = binding
+      template_variables.local_variable_set(:current_city, current_city)
+      template_variables.local_variable_set(:city_emoji, self.get_emoji_for_city(current_city))
+      template_variables.local_variable_set(:flight_info, flight_info)
+      template_variables.local_variable_set(:trip_name, trip[:trip_name])
+      status_info = self.get_status_and_emoji(trip)
+      raise "The name for your current trip in TripIt is invalid." if status_info.nil?
+
+      status_info_key = if self.currently_flying_on_work_trip?(trip)
+                          :flying
+                        else
+                          :not_flying
+                        end
+      status_and_emoji = status_info[status_info_key]
+      status = ERB.new(status_and_emoji[:status]).result(template_variables)
+      emoji = ERB.new(status_and_emoji[:emoji]).result(template_variables)
+      yield(status,emoji)
     end
 
     def self.fetch_current_trip

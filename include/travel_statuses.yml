@@ -1,0 +1,31 @@
+---
+- status_regexp: "^Personal:"
+- status_regexp: "Holiday Party"
+  flying:
+    status: "On my way to the holiday party! <%= flight_info %>"
+    emoji: ":continopug"
+  not_flying:
+    status: "Partying it up!"
+    emoji: ":tophat:"
+- status_regexp: "Contino Day"
+  flying:
+    status: "On my way to Contino Day! <%= flight_info %>"
+    emoji: ":continopug"
+  not_flying:
+    status: "Contino Day"
+    emoji: ":continopug:"
+- status_regexp: "^Contino:.* - Week [0-9]{1,}$"
+  flying:
+    status: "<%= client(trip_name) %>: <%= flight_info %>"
+    emoji: ":plane:"
+  not_flying:
+    status: "<%= client(trip_name) %> @ <%= current_city %>"
+    emoji: "<%= city_emoji %>"
+- status_regexp: "^Contino:.*- Remote$"
+  not_flying:
+    status: "Home"
+    emoji: ":house_with_garden:"
+- status_regexp: "^Vacation:"
+  not_flying:
+    status: "Vacationing!"
+    emoji: ":palm_tree:"
