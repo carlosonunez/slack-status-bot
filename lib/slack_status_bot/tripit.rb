@@ -29,6 +29,7 @@ module SlackStatusBot
                              symbolize_names: true)
       raise "No statuses found." if @statuses.nil?
       trip_name = trip[:trip_name]
+      require 'pry'; binding.pry
       found_status =
         @statuses.select do |status_info|
           Regexp.new(status_info[:status_regexp]).match? trip_name
@@ -45,18 +46,18 @@ module SlackStatusBot
     def self.generate_status_from_trip(trip)
       raise "No trip found." if trip.nil?
 
-      flight = trip[:todays_flight]
-      flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
       current_city = trip[:current_city]
       template_variables = binding
       template_variables.local_variable_set(:current_city, current_city)
       template_variables.local_variable_set(:city_emoji, self.get_emoji_for_city(current_city))
-      template_variables.local_variable_set(:flight_info, flight_info)
       template_variables.local_variable_set(:trip_name, trip[:trip_name])
       status_info = self.get_status_and_emoji(trip)
       raise "The name for your current trip in TripIt is invalid." if status_info.nil?
 
       status_info_key = if self.currently_flying_on_work_trip?(trip)
+                          flight = trip[:todays_flight]
+                          flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
+                          template_variables.local_variable_set(:flight_info, flight_info)
                           :flying
                         else
                           :not_flying
@@ -78,6 +79,7 @@ module SlackStatusBot
       end
       trip = JSON.parse(response.body, symbolize_names: true)[:trip]
       SlackStatusBot.logger.debug("Current trip: #{trip}")
+      return nil if trip.empty?
       yield trip
     end
 
