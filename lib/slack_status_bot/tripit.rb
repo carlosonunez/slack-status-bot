@@ -29,7 +29,6 @@ module SlackStatusBot
                              symbolize_names: true)
       raise "No statuses found." if @statuses.nil?
       trip_name = trip[:trip_name]
-      require 'pry'; binding.pry
       found_status =
         @statuses.select do |status_info|
           Regexp.new(status_info[:status_regexp]).match? trip_name
