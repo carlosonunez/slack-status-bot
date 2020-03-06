@@ -1,5 +1,11 @@
 ---
 - status_regexp: "^Personal:"
+  flying:
+    status: "Not home"
+    emoji: ":airplane:"
+  not_flying:
+    status: "Not home"
+    emoji: ":city_sunset:"
 - status_regexp: "Holiday Party"
   flying:
     status: "On my way to the holiday party! <%= flight_info %>"

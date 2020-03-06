@@ -17,8 +17,8 @@ not_in_air:
     flights: {}
     current_trip: 'Personal: Doing my thang'
     current_city: Anywhere, US
-    status: Vacationing!
-    emoji: ":palm_tree:"
+    status: Not home
+    emoji: ":city_sunset:"
   holiday_party:
     flights: {}
     current_trip: 'Contino: Holiday Party 2019 - Anything'
