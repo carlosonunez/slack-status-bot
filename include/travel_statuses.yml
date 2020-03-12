@@ -32,6 +32,9 @@
     status: "Home"
     emoji: ":house_with_garden:"
 - status_regexp: "^Vacation:"
+  flying:
+    status: "Vacationing!"
+    emoji: ":palm_tree:"
   not_flying:
     status: "Vacationing!"
     emoji: ":palm_tree:"
