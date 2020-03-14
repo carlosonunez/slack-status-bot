@@ -15,6 +15,20 @@ services:
     command:
       - "-c"
       - "not meant to be run with the stack"
+  lint:
+    extends: ruby
+    entrypoint: rubocop
+    volumes:
+      - "$PWD:/app:delegated" # need write access so that we can auto-correct
+    environment:
+      LOAD_PATH: "/app/spec/unit;/app/spec;/app/lib"
+      ENVIRONMENT: test
+    command:
+      - --auto-correct
+      - --except
+      - Style/Documentation,Style/GlobalVars
+      - lib/**/*.rb
+      - spec
   unit:
     extends: ruby
     entrypoint: rspec
