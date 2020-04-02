@@ -29,7 +29,7 @@
     emoji: "<%= city_emoji %>"
 - status_regexp: "^Contino:.*- Remote$"
   not_flying:
-    status: "Home"
+    status: "<%= client(trip_name) %> @ Home"
     emoji: ":house_with_garden:"
 - status_regexp: "^Vacation:"
   flying:
