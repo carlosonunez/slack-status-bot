@@ -7,6 +7,8 @@ require 'slack_status_bot/tripit'
 
 module SlackStatusBot
   CITY_EMOJIS_FILE = './include/city_emojis.yml'
+  TRAVEL_STATUSES_FILE = './include/travel_statuses.yml'
+  EMPLOYER = ENV['TRIPIT_WORK_COMPANY_NAME']
   @logger = Logger.new(STDOUT)
   @logger.level = ENV['LOG_LEVEL'] || Logger::WARN
   def self.logger

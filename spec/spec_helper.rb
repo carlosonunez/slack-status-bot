@@ -17,7 +17,9 @@ module SpecHelpers
     extend RSpec::Mocks::ExampleMethods
     def self.mock_emojis_file!
       allow(File).to receive(:read)
-        .with('./include/city_emojis.yml')
+        .and_call_original
+      allow(File).to receive(:read)
+        .with(SlackStatusBot::CITY_EMOJIS_FILE)
         .and_return('Anywhere, US: ":cool:"')
     end
 

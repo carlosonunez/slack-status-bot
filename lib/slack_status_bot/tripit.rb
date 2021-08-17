@@ -1,3 +1,4 @@
+require 'erb'
 require 'httparty'
 require 'json'
 
@@ -24,17 +25,26 @@ module SlackStatusBot
       !flight.empty?
     end
 
+    def self.render_travel_statuses
+      container = ERB.new(File.read(SlackStatusBot::TRAVEL_STATUSES_FILE))
+      container.result()
+    end
+
     def self.get_status_and_emoji(trip)
-      @statuses ||= YAML.load(File.read("include/travel_statuses.yml"),
+      @statuses ||= YAML.load(File.read(SlackStatusBot::TRAVEL_STATUSES_FILE),
                              symbolize_names: true)
       raise "No statuses found." if @statuses.nil?
       trip_name = trip[:trip_name]
       found_status =
         @statuses.select do |status_info|
-          Regexp.new(status_info[:status_regexp]).match? trip_name
+          template_variables = binding
+          template_variables.local_variable_set(:employer, ENV['TRIPIT_WORK_COMPANY_NAME'])
+          regexp = ERB.new(status_info[:status_regexp]).result(template_variables)
+          SlackStatusBot.logger.debug("Trip: [#{trip_name}], Regexp: [#{regexp}]")
+          Regexp.new(regexp).match? trip_name
         end.first
       SlackStatusBot.logger.warn("Trip name: #{trip_name}, Found: #{found_status}")
-      return nil if found_status.empty?
+      return nil if found_status.nil? or found_status.empty?
       return found_status
     end
 
