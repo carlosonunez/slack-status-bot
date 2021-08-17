@@ -3,19 +3,19 @@ not_in_air:
   business:
     not_remote:
       flights: {}
-      current_trip: 'Work: Test Client - Week n'
+      current_trip: 'Work: Test Client - Week 1'
       current_city: Anywhere, US
       status: Test Client @ Anywhere, US
       emoji: ":cool:"
     remote:
       flights: {}
-      current_trip: 'Work: Test Client - Week n - Remote'
+      current_trip: 'Work: Test Client - Week 1 - Remote'
       current_city: Anywhere, US
       status: Test Client @ Home
       emoji: ":house_with_garden:"
   personal:
     flights: {}
-    current_trip: 'Personal: Doing my thang'
+    current_trip: 'Personal: Whatever goes here'
     current_city: Anywhere, US
     status: Not home
     emoji: ":city_sunset:"
@@ -33,7 +33,7 @@ in_air:
       destination: LAX
       depart_time: 123456789
       arrive_time: 234567890
-    current_trip: 'Work: Test Client - Week n'
+    current_trip: 'Work: Test Client - Week 1'
     status: 'Test Client: AA1: JFK-LAX'
     current_city: Anywhere, US
     emoji: ":airplane:"
@@ -45,9 +45,9 @@ in_air:
       depart_time: 123456789
       arrive_time: 234567890
     current_trip: 'Personal: Doing my thang'
-    status: Vacationing!
+    status: Not home
     current_city: Anywhere, US
-    emoji: ":palm_tree:"
+    emoji: ":house_with_garden:"
   holiday_party:
     flights:
       flight_number: AA1
