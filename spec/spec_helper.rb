@@ -29,12 +29,16 @@ module SpecHelpers
                                       holiday_party: false,
                                       after_hours: false,
                                       weekend: false,
-                                      mocked_time: 1575660000)
+                                      mocked_time: 1575660000,
+                                      on_vacation: false)
       allow(Time).to receive(:now).and_return(Time.at(mocked_time))
       in_air_key = in_air ? :in_air : :not_in_air
       type_key = is_business_trip ? :business : :personal
       if holiday_party
         type_key = :holiday_party
+      end
+      if on_vacation
+        type_key = :vacation
       end
       remote_key = remote ? :remote : :not_remote
       this_response = $test_mocks[in_air_key][type_key]

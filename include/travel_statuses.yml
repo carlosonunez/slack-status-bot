@@ -33,8 +33,8 @@
     emoji: ":house_with_garden:"
 - status_regexp: "^Vacation:"
   flying:
-    status: "Vacationing!"
-    emoji: ":palm_tree:"
+    status: "Out of office until <%= ooo_return_date(trip_name) %>"
+    emoji: ":ooo:"
   not_flying:
-    status: "Vacationing!"
-    emoji: ":palm_tree:"
+    status: "Out of office until <%= ooo_return_date(trip_name) %>"
+    emoji: ":ooo:"

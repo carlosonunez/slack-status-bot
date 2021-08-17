@@ -25,6 +25,10 @@ module SlackStatusBot
       !flight.empty?
     end
 
+    def self.ooo_return_date(trip)
+      trip.gsub(/^Vacation: .* until (.*)$/, '\1')
+    end
+
     def self.render_travel_statuses
       container = ERB.new(File.read(SlackStatusBot::TRAVEL_STATUSES_FILE))
       container.result()

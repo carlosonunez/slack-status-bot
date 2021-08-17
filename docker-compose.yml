@@ -34,9 +34,9 @@ services:
     extends: ruby
     entrypoint: rspec
     environment:
-      ENVIRONMENT: "test"
-      LOAD_PATH: "/app/spec/unit;/app/spec;/app/lib"
-      LOG_LEVEL: "error"
+      - ENVIRONMENT=test
+      - LOAD_PATH="/app/spec/unit;/app/spec;/app/lib"
+      - LOG_LEVEL
     env_file: .env.test
     command:
       - --tag

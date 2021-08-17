@@ -21,10 +21,16 @@ not_in_air:
     emoji: ":city_sunset:"
   holiday_party:
     flights: {}
-    current_trip: 'Contino: Holiday Party 2019 - Anything'
+    current_trip: 'Employer: Holiday Party 2019 - Anything'
     current_city: Anywhere, US
     status: 'Partying it up!'
     emoji: ':tophat:'
+  vacation:
+    flights: {}
+    current_trip: 'Vacation: Out of office until 8/18/2021'
+    current_city: Anywhere, US
+    status: 'Out of office until 8/18/2021'
+    emoji: ':ooo:'
 in_air:
   business:
     flights:
@@ -59,3 +65,14 @@ in_air:
     status: 'On my way to the holiday party! AA1: JFK-LAX'
     current_city: Anywhere, US
     emoji: ":airplane:"
+  vacation:
+    flights:
+      flight_number: AA1
+      origin: JFK
+      destination: LAX
+      depart_time: 123456789
+      arrive_time: 234567890
+    current_trip: 'Vacation: Out of office until 8/18/2021'
+    current_city: Anywhere, US
+    status: 'Out of office until 8/18/2021'
+    emoji: ':ooo:'

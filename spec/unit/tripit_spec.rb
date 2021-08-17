@@ -82,6 +82,16 @@ describe "Given a TripIt integration for Slack status bot" do
           expect(SlackStatusBot::TripIt.update!).to be true
       end
     end
+
+    context "And I'm on vacation" do
+      example "It should show that I'm out of office", :unit do
+          SpecHelpers::TestMocks::create_mocked_responses!(in_air: false,
+                                              is_business_trip: false,
+                                              holiday_party: false,
+                                              on_vacation: true)
+          expect(SlackStatusBot::TripIt.update!).to be true
+      end
+    end
   end
 
   context "When I'm in the air" do
@@ -106,6 +116,15 @@ describe "Given a TripIt integration for Slack status bot" do
           SpecHelpers::TestMocks::create_mocked_responses!(in_air: true,
                                               is_business_trip: false,
                                               holiday_party: true)
+          expect(SlackStatusBot::TripIt.update!).to be true
+      end
+    end
+    context "And I'm on vacation" do
+      example "It should show that I'm out of office", :unit do
+          SpecHelpers::TestMocks::create_mocked_responses!(in_air: true,
+                                              is_business_trip: false,
+                                              holiday_party: false,
+                                              on_vacation: true)
           expect(SlackStatusBot::TripIt.update!).to be true
       end
     end
