@@ -3,7 +3,7 @@ name: Update my status
 on:
   push:
   schedule:
-  - cron: 0 */1 * * *
+  - cron: */15 * * * *
 
 jobs:
   update_status:
