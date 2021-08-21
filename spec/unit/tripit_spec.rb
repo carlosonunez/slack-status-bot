@@ -127,6 +127,16 @@ describe "Given a TripIt integration for Slack status bot" do
                                               on_vacation: true)
           expect(SlackStatusBot::TripIt.update!).to be true
       end
+
+      example "It should show I'm out even during the weekend", :unit do
+        mocked_friday_afterhours = 1576278060 # Time is in UTC.
+        SpecHelpers::TestMocks::create_mocked_responses!(in_air: true,
+                                                         is_business_trip: false,
+                                                         holiday_party: false,
+                                                         on_vacation: true,
+                                                         weekend: true)
+        expect(SlackStatusBot::TripIt.update!).to be true
+      end
     end
   end
 end

@@ -48,7 +48,7 @@ module SpecHelpers
       current_trip = this_response[:current_trip]
       current_city = this_response[:current_city]
       flights = this_response[:flights]
-      if weekend
+      if weekend and not on_vacation
         status = 'Yay, weekend!'
         emoji = ':sunglasses:'
       else

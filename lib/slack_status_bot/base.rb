@@ -4,7 +4,7 @@ module SlackStatusBot
   module Base
     module Mixins
       def post_new_status!(status:, emoji: nil)
-        if self.weekend?
+        if self.weekend? and not self.on_vacation?(status)
           status = "Yay, weekend!"
           emoji = ':sunglasses:'
           SlackStatusBot.logger.info "About to yield cuz weekend"
@@ -15,6 +15,10 @@ module SlackStatusBot
       def post_default_status!
         API.post_status!(ENV['SLACK_API_DEFAULT_STATUS'],
                           ENV['SLACK_API_DEFAULT_STATUS_EMOJI'])
+      end
+
+      def on_vacation?(status)
+        status.match? /^Out of office/
       end
 
       def weekend?
