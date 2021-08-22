@@ -50,6 +50,7 @@ services:
     environment:
       ENVIRONMENT: "test"
       LOAD_PATH: "/app/lib"
+      LOG_LEVEL: INFO
     env_file: .env
     command:
       - bin/update.rb
