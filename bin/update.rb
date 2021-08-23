@@ -8,6 +8,6 @@ enabled_integrations = [
 failed_updates = []
 enabled_integrations.each do |integration|
   SlackStatusBot.logger.info("Updating integration: #{integration}")
-  failed_updates += integration unless SlackStatusBot.const_get(integration).update!
+  failed_updates.append(integration) unless SlackStatusBot.const_get(integration).update!
 end
 raise "One or more integrations failed to update: #{failed_updates}. See logs for more." unless failed_updates.empty?
