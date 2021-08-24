@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-require_relative '../test_mocks'
-
 module SpecHelpers
-  module TestMocks
-    module TripIt
+  module Integrations
+    class GoogleCalendar
+      extend RSpec::Mocks::ExampleMethods
       def self.generate(endpoint, params: nil)
-        TestMocks::URI.generate(ENV['MOCKED_TRIPIT_API_URL'],
+        TestMocks::URI.generate(ENV['MOCKED_GOOGLE_CALENDAR_API_URL'],
                                 endpoint.gsub(%r{^/}, ''),
                                 params: params)
       end
