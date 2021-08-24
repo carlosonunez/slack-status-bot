@@ -4,6 +4,7 @@ require 'json'
 require 'slack_status_bot/base'
 require 'slack_status_bot/environment'
 require 'slack_status_bot/tripit'
+require 'slack_status_bot/google_calendar'
 
 module SlackStatusBot
   CITY_EMOJIS_FILE = './include/city_emojis.yml'
@@ -16,4 +17,4 @@ module SlackStatusBot
   end
 end
 
-raise 'App is not configured properly; see logs.' if !SlackStatusBot::Environment.configured?
+raise 'App is not configured properly; see logs.' unless SlackStatusBot::Environment.configured?
