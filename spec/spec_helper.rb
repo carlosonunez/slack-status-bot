@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 require 'rspec'
 require 'httparty'
 require 'yaml'
 require 'slack_status_bot'
-require_relative 'helpers/test_mocks.rb'
+require_relative 'helpers/test_mocks'
 
 RSpec.configure do |config|
-  config.before(:each, :unit => true) do
-    $test_mocks = YAML.load(File.read('./spec/fixtures/test_mocks.yaml'),
-                            symbolize_names: true)
+  config.before(:each, unit: true) do
+    $test_mocks = YAML.safe_load(File.read('./spec/fixtures/test_mocks.yaml'),
+                                 symbolize_names: true)
     SpecHelpers::TestMocks.mock_emojis_file!
   end
 end
@@ -23,59 +25,52 @@ module SpecHelpers
         .and_return('Anywhere, US: ":cool:"')
     end
 
-    def self.create_mocked_responses!(in_air:, 
+    def self.create_mocked_responses!(in_air:,
                                       is_business_trip:,
                                       remote: false,
                                       holiday_party: false,
                                       after_hours: false,
                                       weekend: false,
-                                      mocked_time: 1575660000,
+                                      mocked_time: 1_575_660_000,
                                       on_vacation: false)
       allow(Time).to receive(:now).and_return(Time.at(mocked_time))
       in_air_key = in_air ? :in_air : :not_in_air
       type_key = is_business_trip ? :business : :personal
-      if holiday_party
-        type_key = :holiday_party
-      end
-      if on_vacation
-        type_key = :vacation
-      end
+      type_key = :holiday_party if holiday_party
+      type_key = :vacation if on_vacation
       remote_key = remote ? :remote : :not_remote
       this_response = $test_mocks[in_air_key][type_key]
-      if this_response.has_key? remote_key
-        this_response = this_response[remote_key]
-      end
+      this_response = this_response[remote_key] if this_response.key? remote_key
       current_trip = this_response[:current_trip]
       current_city = this_response[:current_city]
       flights = this_response[:flights]
-      if weekend and not on_vacation
+      if weekend && !on_vacation
         status = 'Yay, weekend!'
         emoji = ':sunglasses:'
       else
         status = this_response[:status]
-        if after_hours
-          status = status + " (My work phone is off. Availability might be limited.)"
-        end
+        status += ' (My work phone is off. Availability might be limited.)' if after_hours
         emoji = this_response[:emoji]
       end
-      expected_status = status + " " + emoji
+      expected_status = "#{status} #{emoji}"
       expect(HTTParty).to receive(:get)
         .with(TestMocks::TripIt.generate('/current_trip'),
-             headers: {'x-api-key': ENV['MOCKED_TRIPIT_API_KEY']})
-        .and_return(self.generate_mocked_response({status: 'ok',
-                     trip: {trip_name: current_trip,
-                            current_city: current_city,
-                            todays_flight: flights}}.to_json))
+              headers: { 'x-api-key': ENV['MOCKED_TRIPIT_API_KEY'] })
+        .and_return(generate_mocked_response({ status: 'ok',
+                                               trip: { trip_name: current_trip,
+                                                       current_city: current_city,
+                                                       todays_flight: flights } }.to_json))
       expect(HTTParty).to receive(:post)
         .with(TestMocks::Slack.generate(
-          '/status',
-          params: {
-            text: status,
-            emoji: emoji
-          }), headers: {'x-api-key': ENV['MOCKED_SLACK_API_KEY']})
-        .and_return(self.generate_mocked_response({status: 'ok',
-                     changed: {old: ':rocket: Old status',
-                               new: expected_status}}.to_json))
+                '/status',
+                params: {
+                  text: status,
+                  emoji: emoji
+                }
+              ), headers: { 'x-api-key': ENV['MOCKED_SLACK_API_KEY'] })
+        .and_return(generate_mocked_response({ status: 'ok',
+                                               changed: { old: ':rocket: Old status',
+                                                          new: expected_status } }.to_json))
     end
 
     def self.generate_mocked_response(body)
