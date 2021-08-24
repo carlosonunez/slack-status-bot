@@ -47,7 +47,6 @@ module SlackStatusBot
           SlackStatusBot.logger.debug("Trip: [#{trip_name}], Regexp: [#{regexp}]")
           Regexp.new(regexp).match? trip_name
         end.first
-      SlackStatusBot.logger.warn("Trip name: #{trip_name}, Found: #{found_status}")
       return nil if found_status.nil? or found_status.empty?
       return found_status
     end
