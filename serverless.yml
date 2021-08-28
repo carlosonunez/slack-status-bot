@@ -1,0 +1,92 @@
+---
+useDotenv: true
+
+plugins:
+  - serverless-domain-manager
+
+service: status-listeners
+frameworkVersion: '2.43.1'
+
+provider:
+  name: aws
+  runtime: ruby2.7
+  region: ${env:AWS_REGION, 'us-east-2'}
+  memorySize: 256
+  deploymentBucket:
+    name: ${env:SERVERLESS_BUCKET_NAME}-${env:ENVIRONMENT}
+  deploymentPrefix: serverless
+  apiGateway:
+    apiKeys:
+      - ${self:custom.keyName.${opt:stage, self:provider.stage}}
+  tracing:
+    apiGateway: true
+
+package:
+  patterns:
+    - 'lib/**'
+    - 'bin/**'
+    - 'vendor/**'
+    - 'include/**'
+    - '!scripts/**'
+    - '!secrets/**'
+    - '!infra/**'
+    - '!docker-compose.*'
+    - '!.terraform/**'
+    - '!spec/**'
+    - '!.env*'
+
+functions:
+  update:
+    handler: bin/listeners.update_from_lambda!
+    description: Posts an ad-hoc status from AWS Lambda
+    timeout: 30
+    environment:
+      GEM_PATH: vendor/bundle/ruby/2.7.0
+      SLACK_API_DEFAULT_STATUS: ${env:SLACK_API_DEFAULT_STATUS}
+      SLACK_API_DEFAULT_STATUS_EMOJI: ${env:SLACK_API_DEFAULT_STATUS_EMOJI}
+      TRIPIT_WORK_COMPANY_NAME: ${env:TRIPIT_WORK_COMPANY_NAME}
+      TRIPIT_API_URL: ${env:TRIPIT_API_URL}
+      TRIPIT_API_KEY: ${env:TRIPIT_API_KEY}
+      SLACK_API_URL: ${env:SLACK_API_URL}
+      SLACK_API_KEY: ${env:SLACK_API_KEY}
+      LOG_LEVEL: ${env:LOG_LEVEL, "INFO"}
+    events:
+      - http:
+          path: status
+          method: post
+          private: true
+  run_updates:
+    handler: bin/listeners.run_updates_from_lambda!
+    description: Processes status updates from pre-configured integrations (like Tripit) ad-hoc from Lambda.
+    timeout: 30
+    environment:
+      GEM_PATH: vendor/bundle/ruby/2.7.0
+      ENABLED_INTEGRATIONS: ${env:ENABLED_INTEGRATIONS}
+      SLACK_API_DEFAULT_STATUS: ${env:SLACK_API_DEFAULT_STATUS}
+      SLACK_API_DEFAULT_STATUS_EMOJI: ${env:SLACK_API_DEFAULT_STATUS_EMOJI}
+      TRIPIT_WORK_COMPANY_NAME: ${env:TRIPIT_WORK_COMPANY_NAME}
+      TRIPIT_API_URL: ${env:TRIPIT_API_URL}
+      TRIPIT_API_KEY: ${env:TRIPIT_API_KEY}
+      SLACK_API_URL: ${env:SLACK_API_URL}
+      SLACK_API_KEY: ${env:SLACK_API_KEY}
+      LOG_LEVEL: ${env:LOG_LEVEL, "INFO"}
+    events:
+      - http:
+          path: run_updates
+          method: post
+          private: true
+
+custom:
+  keyName:
+    develop: default-status-bot-key-dev
+    v1: default-status-bot-key-prod
+  enableCustomDomain:
+    develop: false
+    v1: true
+  customDomain:
+    stage: v1
+    domainName: ${env:DOMAIN_PATH}.${env:DOMAIN_TLD}
+    certificateArn: ${file(./secrets/certificate_arn)}
+    basePath: 'v1'
+    createRoute53Record: true
+    enabled: ${self:custom.enableCustomDomain.${opt:stage, self:provider.stage}}

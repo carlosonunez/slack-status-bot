@@ -32,7 +32,8 @@ module SpecHelpers
                                       after_hours: false,
                                       weekend: false,
                                       mocked_time: 1_575_660_000,
-                                      on_vacation: false)
+                                      on_vacation: false,
+                                      status_expiration_stale: true)
       allow(Time).to receive(:now).and_return(Time.at(mocked_time))
       in_air_key = in_air ? :in_air : :not_in_air
       type_key = is_business_trip ? :business : :personal
@@ -53,6 +54,9 @@ module SpecHelpers
         emoji = this_response[:emoji]
       end
       expected_status = "#{status} #{emoji}"
+      allow(SlackStatusBot::TripIt)
+        .to receive(:status_expiration_stale?)
+        .and_return(status_expiration_stale)
       expect(HTTParty).to receive(:get)
         .with(TestMocks::TripIt.generate('/current_trip'),
               headers: { 'x-api-key': ENV['MOCKED_TRIPIT_API_KEY'] })

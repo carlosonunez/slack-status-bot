@@ -1,0 +1,102 @@
+version: '2.2'
+services:
+  aws:
+    image: amazon/aws-cli:2.2.9
+    env_file: .env
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_ROLE_ARN
+  serverless:
+    build:
+      dockerfile: serverless.Dockerfile
+      context: .
+    env_file: .env
+    volumes:
+      - $PWD:/app
+    working_dir: /app
+    environment:
+      - ENVIRONMENT
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+  terraform:
+    image: carlosnunez/terraform:0.13.5
+    env_file: .env
+    environment:
+      - TF_CLI_ARGS_destroy="-force"
+      - TF_DATA_DIR=/tmp
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+    volumes:
+      - $PWD:/app
+      - $PWD/.terraform:/tmp
+    working_dir: /app
+    entrypoint: 
+      - ./scripts/execute_terraform.sh
+  validate-serverless-infra:
+    extends: terraform
+    environment:
+      TF_VAR_environment: "production"
+    command:
+      - plan
+      - --input=false
+  deploy-serverless-infra:
+    extends: terraform
+    environment:
+      ENVIRONMENT: "production"
+    command:
+      - apply
+      - --auto-approve=true
+      - --input=false
+  deploy-serverless-domain:
+    extends: serverless
+    environment:
+      ENVIRONMENT: "production"
+    command:
+      - create_domain
+      - --stage
+      - v1
+  deploy-serverless-functions:
+    extends: serverless
+    environment:
+      ENVIRONMENT: "production"
+    command:
+      - deploy
+      - --stage
+      - v1
+  deploy-serverless-infra-test:
+    extends: terraform
+    env_file: .env.integration
+    environment:
+      ENVIRONMENT: "test"
+      TF_VAR_no_certs: "true"
+    command:
+      - apply
+      - --auto-approve=true
+      - --input=false
+  deploy-serverless-functions-test:
+    extends: serverless
+    env_file: .env.integration
+    environment:
+      ENVIRONMENT: "test"
+    command:
+      - deploy
+      - --stage
+      - develop
+  obtain-aws-session-token:
+    extends: aws
+    command:
+      - sts
+      - assume-role
+      - --role-arn
+      - "$AWS_ROLE_ARN"
+      - --external-id
+      - "$AWS_STS_EXTERNAL_ID"
+      - --role-session-name
+      - "$AWS_SESSION_NAME"
+      - --output
+      - yaml
