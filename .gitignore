@@ -1,1 +1,8 @@
 .env
+.env.*
+!.env.example
+.terraform
+.serverless/
+vendor/
+secrets/
+

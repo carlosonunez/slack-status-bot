@@ -1,0 +1,20 @@
+---
+name: Update my status
+on:
+  push:
+  schedule:
+  - cron: '*/15 * * * *'
+
+jobs:
+  update_status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Perform status updates
+        uses: wei/curl@v1
+        env:
+          STATUS_API_KEY: ${{ secrets.status_api_key }}
+        with:
+          args: >-
+            -X POST
+            -H "X-Api-Key: ${STATUS_API_KEY}"
+            "https://status.apis.carlosnunez.me/v1/run_updates"

@@ -1,12 +1,11 @@
 ---
-name: Update my status
+name: Update APIs
 on:
   push:
-  schedule:
-  - cron: '*/15 * * * *'
+    - main
 
 jobs:
-  update_status:
+  install-docker-compose:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -17,10 +16,40 @@ jobs:
         env:
           DOCKER_COMPOSE_URL: https://github.com/docker/compose/releases/download/1.22.0
 
+      - name: Store Docker Compose
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-compose
+          path: ./docker-compose
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs:
+      - install-docker-compose
+    steps:
+      - name: Get Docker Compose
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-compose
       - name: Decrypt environment file
         run: ./docker-compose -f docker-compose.ci.yml run --rm decrypt-env
         env:
           ENV_PASSWORD: ${{ secrets.env_file_encryption_key }}
-
-      - name: Update my status
-        run: ./docker-compose run --rm update_status
+      - name: Unit tests
+        run: ./docker-compose run --rm unit
+  update-serverless-functions:
+    runs-on: ubuntu-latest
+    needs:
+      - unit-tests
+    steps:
+      - name: Get Docker Compose
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-compose
+      - name: Decrypt environment file
+        run: ./docker-compose -f docker-compose.ci.yml run --rm decrypt-env
+        env:
+          ENV_PASSWORD: ${{ secrets.env_file_encryption_key }}
+      - name: Deploy serverless functions
+        run: scripts/deploy
+        env:
+          ENVIRONMENT: production

@@ -30,6 +30,17 @@ services:
       - Style/Documentation,Style/GlobalVars
       - lib/**/*.rb
       - spec
+  vendor:
+    extends: ruby
+    environment:
+      ENVIRONMENT: "test"
+    volumes:
+      - "$PWD:/app:cached"
+      - "$PWD/vendor:/vendor:cached"
+      - "$PWD/Gemfile:/Gemfile"
+    command:
+      - -c
+      - "echo 'INFO: Vendoring dependencies...' && bundle install --without test --path /vendor/bundle"
   unit:
     extends: ruby
     entrypoint: rspec
@@ -48,9 +59,9 @@ services:
     extends: ruby
     entrypoint: ruby
     environment:
-      ENVIRONMENT: "test"
-      LOAD_PATH: "/app/lib"
-      LOG_LEVEL: INFO
+      - ENVIRONMENT=test
+      - LOAD_PATH="/app/lib"
+      - LOG_LEVEL
     env_file: .env
     command:
       - bin/update.rb

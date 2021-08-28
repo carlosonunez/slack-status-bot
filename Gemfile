@@ -1,9 +1,10 @@
 source 'https://rubygems.org'
 
-gem 'logger'
+gem 'chronic_duration'
 gem 'httparty'
+gem 'logger'
 group :test do
+  gem 'pry'
   gem 'rspec'
   gem 'rspec-expectations'
-  gem 'pry'
 end
