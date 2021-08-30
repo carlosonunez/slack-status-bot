@@ -35,10 +35,16 @@ module SlackStatusBot
       # good place to start:
       # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-method-settings-method-request.html#setup-method-request-parameters
       def self.params(event = {})
-        query_params = event[:queryStringParameters] ||
-                       event['queryStringParameters'] ||
-                       {}
+        body_params = JSON.parse(get_key_from_sym_or_string(event, 'body', '{}'),
+                                 symbolize_names: true)
+        return body_params unless body_params.empty?
+
+        query_params = get_key_from_sym_or_string(event, 'queryStringParameters', {})
         query_params.transform_keys(&:to_sym)
+      end
+
+      def self.get_key_from_sym_or_string(hash, key, default = nil)
+        hash[key.to_sym] || hash[key.to_s] || default
       end
 
       def self.trace_id(event)
