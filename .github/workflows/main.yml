@@ -2,7 +2,12 @@
 name: Update APIs
 on:
   push:
-    - main
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - bash_aliases
+      - '*.Dockerfile'
 
 jobs:
   install-docker-compose:
