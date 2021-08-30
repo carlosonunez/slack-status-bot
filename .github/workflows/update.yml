@@ -13,5 +13,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Perform status updates
-        run: "curl -X POST -H 'X-API-Key: ${{ secrets.status_api_key }}' '${{ secrets.status_url }}'"
+        run: "curl --fail-with-body -X POST -H 'X-API-Key: ${{ secrets.status_api_key }}' '${{ secrets.status_url }}'"
 
