@@ -10,7 +10,7 @@ on:
       - '!bash_aliases'
       - '!*.Dockerfile'
       - '!.github/workflows/update.yml'
-
+      - '!bin/update.rb'
 jobs:
   unit-tests:
     runs-on: ubuntu-latest

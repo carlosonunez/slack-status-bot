@@ -39,7 +39,7 @@ USAGE = <<~TEXT
 TEXT
 
 show_help_and_quit(ARGV)
-if force?(ARGV)
+if ignore_slack_status_expiration?(ARGV)
   SlackStatusBot.update!(ignore_status_expiration: true)
 else
   SlackStatusBot.update!
