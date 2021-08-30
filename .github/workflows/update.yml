@@ -3,8 +3,8 @@ name: Update my status
 on:
   push:
     paths:
-      - '.github/workflows/update.yml'
       - '!*/**'
+      - '.github/workflows/update.yml'
   schedule:
   - cron: '*/15 * * * *'
 
