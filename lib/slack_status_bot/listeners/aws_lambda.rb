@@ -75,7 +75,7 @@ module SlackStatusBot
           status: 'error'
         }
         body[:additional] = additional_json unless additional_json.empty?
-        body[:message] = message unless message.empty?
+        body[:message] = message.to_s
         {
           statusCode: http_code,
           headers: {
