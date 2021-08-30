@@ -17,12 +17,12 @@ rescue StandardError => e
 end
 
 def run_updates_from_lambda!(event:, context:)
-  ignore_expiration_time =
+  ignore_status_expiration =
     SlackStatusBot::Listeners::AWSLambda.param_key(event,
-                                                   'ignore_expiration_time',
+                                                   'ignore_status_expiration',
                                                    'false')
-  ignore_expiration_time = ignore_expiration_time.downcase == 'true'
-  SlackStatusBot.update!(ignore_expiration_time: ignore_expiration_time)
+  ignore_status_expiration = ignore_status_expiration.downcase == 'true'
+  SlackStatusBot.update!(ignore_status_expiration: ignore_status_expiration)
   SlackStatusBot::Listeners::AWSLambda.ok(event)
 rescue StandardError => e
   SlackStatusBot::Listeners::AWSLambda.error(
