@@ -21,7 +21,7 @@ def run_updates_from_lambda!(event:, context:)
     SlackStatusBot::Listeners::AWSLambda.param_key(event,
                                                    'ignore_expiration_time',
                                                    'false')
-  ignore_expiration_time = ignore_expiration_time.to_downcase == 'true'
+  ignore_expiration_time = ignore_expiration_time.downcase == 'true'
   SlackStatusBot.update!(ignore_expiration_time: ignore_expiration_time)
   SlackStatusBot::Listeners::AWSLambda.ok(event)
 rescue StandardError => e
