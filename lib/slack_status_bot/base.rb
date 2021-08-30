@@ -68,7 +68,7 @@ module SlackStatusBot
       def self.post_status!(status, emoji, expiration = nil)
         SlackStatusBot.logger.info "Shipping status: #{emoji} #{status}"
         uri = [ENV['SLACK_API_URL'], 'status'].join('/')
-        params = ["text=#{status}", "emoji=#{emoji}"].join('&')
+        params = ["text=#{status.encode('ASCII')}", "emoji=#{emoji.encode('ASCII')}"].join('&')
         params = "#{params}&expiration=#{expiration}" unless expiration.nil?
         SlackStatusBot.logger.debug "POST to #{uri} with #{params}"
         response = HTTParty.post(uri + '?' + params,
