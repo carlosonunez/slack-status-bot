@@ -20,6 +20,8 @@ jobs:
           body=$(cat "$file");
           rm -f "$file";
           if [ "$code" != 200 ];
-          then >&2 echo "ERROR: Update failed with [$code]: $body";
+          then \
+            >&2 echo "ERROR: Update failed with [$code]: $body";
+            exit 1;
           fi;
 
