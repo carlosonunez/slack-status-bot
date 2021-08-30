@@ -68,25 +68,6 @@ services:
       - deploy
       - --stage
       - v1
-  deploy-serverless-infra-test:
-    extends: terraform
-    env_file: .env.integration
-    environment:
-      ENVIRONMENT: "test"
-      TF_VAR_no_certs: "true"
-    command:
-      - apply
-      - --auto-approve=true
-      - --input=false
-  deploy-serverless-functions-test:
-    extends: serverless
-    env_file: .env.integration
-    environment:
-      ENVIRONMENT: "test"
-    command:
-      - deploy
-      - --stage
-      - develop
   obtain-aws-session-token:
     extends: aws
     command:
