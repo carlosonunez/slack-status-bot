@@ -19,11 +19,14 @@ module SlackStatusBot
     @logger
   end
 
-  def self.update!
+  def self.update!(ignore_status_expiration: false)
     failed_updates = []
+    SlackStatusBot.logger.debug("Enabled integrations: #{ENABLED_INTEGRATIONS}")
     ENABLED_INTEGRATIONS.split(',').each do |integration|
       SlackStatusBot.logger.info("Updating integration: #{integration}")
-      failed_updates.append(integration) unless SlackStatusBot.const_get(integration).update!
+      status_updated =
+        SlackStatusBot.const_get(integration).update!(ignore_status_expiration: ignore_status_expiration)
+      failed_updates.append(integration) unless status_updated
     end
     return if failed_updates.empty?
 

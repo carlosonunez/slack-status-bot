@@ -55,12 +55,31 @@ describe "Given a library that send statuses to Carlos's Slack Bot Thing" do
         .to receive(:status_expiration_stale?)
         .and_return(false)
     end
-    example 'Then the status is not modified', :unit do
-      extend SlackStatusBot::Base::Mixins
-      expect(SlackStatusBot::Base::API)
-        .not_to receive(:post_status!)
-      expect(post_new_status!(status: @fake_status, emoji: @fake_emoji))
-        .to eq(false)
+    context 'And we are not ignoring its expiration time' do
+      example 'Then the status is not modified', :unit do
+        extend SlackStatusBot::Base::Mixins
+        expect(SlackStatusBot::Base::API)
+          .not_to receive(:post_status!)
+        expect(post_new_status!(status: @fake_status, emoji: @fake_emoji))
+          .to eq(false)
+      end
+    end
+    context 'And we are ignoring its expiration time' do
+      example 'Then the status is modified', :unit do
+        extend SlackStatusBot::Base::Mixins
+        mocked_time = 1_575_660_000
+        allow(Time).to receive(:now).and_return(Time.at(mocked_time))
+        expect(SlackStatusBot::Base::API)
+          .to receive(:post_status!)
+          .with(@fake_status, @fake_emoji)
+          .and_return(true)
+        expect(SlackStatusBot::Base::API)
+          .not_to receive(:post_status!)
+        expect(post_new_status!(status: @fake_status,
+                                emoji: @fake_emoji,
+                                ignore_status_expiration: true))
+          .to eq(true)
+      end
     end
   end
 

@@ -57,11 +57,11 @@ services:
       - documentation
   update_status:
     extends: ruby
-    entrypoint: ruby
+    entrypoint:
+      - ruby
+      - bin/update.rb
     environment:
       - ENVIRONMENT=test
       - LOAD_PATH="/app/lib"
       - LOG_LEVEL
     env_file: .env
-    command:
-      - bin/update.rb

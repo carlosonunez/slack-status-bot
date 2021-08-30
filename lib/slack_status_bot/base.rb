@@ -6,8 +6,11 @@ require 'time'
 module SlackStatusBot
   module Base
     module Mixins
-      def post_new_status!(status:, emoji: nil)
-        return false unless status_expiration_stale?
+      def post_new_status!(status:, emoji: nil, ignore_status_expiration: false)
+        if !status_expiration_stale? && !ignore_status_expiration
+          SlackStatusBot.logger.warn 'Current status has not expired; leaving it alone'
+          return false
+        end
 
         if weekend? && !on_vacation?(status)
           status = 'Yay, weekend!'
@@ -17,16 +20,17 @@ module SlackStatusBot
         API.post_status!(status, emoji)
       end
 
-      def post_default_status!
-        API.post_status!(ENV['SLACK_API_DEFAULT_STATUS'],
-                         ENV['SLACK_API_DEFAULT_STATUS_EMOJI'])
+      def post_default_status!(ignore_status_expiration: false)
+        API.post_status!(status: ENV['SLACK_API_DEFAULT_STATUS'],
+                         emoji: ENV['SLACK_API_DEFAULT_STATUS_EMOJI'],
+                         ignore_status_expiration: ignore_status_expiration)
       end
 
       def status_expiration_stale?
         existing_status = API.get_status
-        raise 'Unable to get existing status' if existing_status.empty?
+        raise 'Unable to get existing status' if existing_status.nil? || existing_status.empty?
 
-        expiration_time = existing_status[:status_expiration]
+        expiration_time = existing_status[:status_expiration] || existing_status['status_expiration']
         current_time = Time.now.strftime('%s').to_i
         expiration_time <= current_time
       end
@@ -62,7 +66,7 @@ module SlackStatusBot
           SlackStatusBot.logger.error "Unable to retrieve status update: #{response.body}"
           return {}
         end
-        response[:data]
+        response[:data] || response['data']
       end
 
       def self.post_status!(status, emoji, expiration = nil)

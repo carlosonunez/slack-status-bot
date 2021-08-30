@@ -5,17 +5,19 @@ require 'json'
 module SlackStatusBot
   module TripIt
     extend SlackStatusBot::Base::Mixins
-    def self.update!
+    def self.update!(ignore_status_expiration: false)
       fetch_current_trip do |trip|
         generate_status_from_trip(trip) do |status, emoji|
-          return post_default_status! if status.nil?
+          return post_default_status!(ignore_status_expiration: ignore_status_expiration) if status.nil?
 
           status += ' (My work phone is off. Availability might be limited.)' if limited_availability? && !weekend?
-          return post_new_status!(status: status, emoji: emoji)
+          return post_new_status!(status: status,
+                                  emoji: emoji,
+                                  ignore_status_expiration: ignore_status_expiration)
         end
       end
       SlackStatusBot.logger.warn 'No trip found. Posting default status.'
-      post_default_status!
+      post_default_status!(ignore_status_expiration: ignore_status_expiration)
     end
 
     def self.currently_flying_on_work_trip?(trip)
