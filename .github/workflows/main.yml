@@ -8,6 +8,7 @@ on:
       - README.md
       - bash_aliases
       - '*.Dockerfile'
+      - .github/workflows/update.yml
 
 jobs:
   unit-tests:
