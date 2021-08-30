@@ -6,10 +6,10 @@ on:
       - main
     paths:
       - '*/**'
-      - !README.md
-      - !bash_aliases
-      - !*.Dockerfile
-      - !.github/workflows/update.yml'
+      - '!README.md'
+      - '!bash_aliases'
+      - '!*.Dockerfile'
+      - '!.github/workflows/update.yml'
 
 jobs:
   unit-tests:
