@@ -52,8 +52,11 @@ module SpecHelpers
         emoji = ':sunglasses:'
       else
         status = this_response[:status]
-        status += ' (My work phone is off. Availability might be limited.)' if after_hours
         emoji = this_response[:emoji]
+        if after_hours
+          status += ' (My work phone is off. Availability might be limited.)'
+          emoji = ':sleeping:'
+        end
       end
       expected_status = "#{status} #{emoji}"
       allow(SlackStatusBot::TripIt)
@@ -71,7 +74,8 @@ module SpecHelpers
                 '/status',
                 params: {
                   text: status,
-                  emoji: emoji
+                  emoji: emoji,
+                  expiration: 0
                 }
               ), headers: { 'x-api-key': ENV['MOCKED_SLACK_API_KEY'] })
         .and_return(generate_mocked_response({ status: 'ok',

@@ -51,6 +51,7 @@ functions:
       SLACK_API_KEY: ${env:SLACK_API_KEY}
       LOG_LEVEL: ${env:LOG_LEVEL, "INFO"}
       ENABLED_INTEGRATIONS: "this function doesn't use any integrations"
+      TZ: ${env:TZ, "America/Chicago"}
     events:
       - http:
           path: status
@@ -71,6 +72,7 @@ functions:
       SLACK_API_URL: ${env:SLACK_API_URL}
       SLACK_API_KEY: ${env:SLACK_API_KEY}
       LOG_LEVEL: ${env:LOG_LEVEL, "INFO"}
+      TZ: ${env:TZ, "America/Chicago"}
     events:
       - http:
           path: run_updates

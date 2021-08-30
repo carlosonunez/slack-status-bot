@@ -10,7 +10,10 @@ module SlackStatusBot
         generate_status_from_trip(trip) do |status, emoji|
           return post_default_status!(ignore_status_expiration: ignore_status_expiration) if status.nil?
 
-          status += ' (My work phone is off. Availability might be limited.)' if limited_availability? && !weekend?
+          if limited_availability? && !weekend?
+            status += ' (My work phone is off. Availability might be limited.)'
+            emoji = ':sleeping:'
+          end
           return post_new_status!(status: status,
                                   emoji: emoji,
                                   ignore_status_expiration: ignore_status_expiration)
