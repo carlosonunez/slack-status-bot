@@ -41,13 +41,13 @@ module SlackStatusBot
 
       def weekend?
         weekend_days = %w[Saturday Sunday]
-        today = Time.now.getlocal('-06:00').strftime('%A') # TODO: Timezone from TripIt
-        current_hour = Time.now.getlocal('-06:00').hour
+        today = Time.now.strftime('%A') # TODO: Timezone from TripIt
+        current_hour = Time.now.hour
         weekend_days.include? today or (today == 'Friday' and current_hour >= 17)
       end
 
       def limited_availability?
-        current_hour = Time.now.getlocal('-06:00').hour # TODO: Get my current time zone from TripIt
+        current_hour = Time.now.hour # TODO: Get my current time zone from TripIt
         start_hour_of_working_day = 9
         end_hour_of_working_day = 17
         current_hour < start_hour_of_working_day || current_hour >= end_hour_of_working_day
