@@ -4,11 +4,12 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - README.md
-      - bash_aliases
-      - '*.Dockerfile'
-      - '.github/workflows/update.yml'
+    paths:
+      - '*/**'
+      - !README.md
+      - !bash_aliases
+      - !*.Dockerfile
+      - !.github/workflows/update.yml'
 
 jobs:
   unit-tests:
