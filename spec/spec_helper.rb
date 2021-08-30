@@ -33,12 +33,14 @@ module SpecHelpers
                                       weekend: false,
                                       mocked_time: 1_575_660_000,
                                       on_vacation: false,
-                                      status_expiration_stale: true)
+                                      status_expiration_stale: true,
+                                      on_beach: false)
       allow(Time).to receive(:now).and_return(Time.at(mocked_time))
       in_air_key = in_air ? :in_air : :not_in_air
       type_key = is_business_trip ? :business : :personal
       type_key = :holiday_party if holiday_party
       type_key = :vacation if on_vacation
+      type_key = :beach if on_beach
       remote_key = remote ? :remote : :not_remote
       this_response = $test_mocks[in_air_key][type_key]
       this_response = this_response[remote_key] if this_response.key? remote_key

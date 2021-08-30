@@ -6,20 +6,18 @@ module SlackStatusBot
   module TripIt
     extend SlackStatusBot::Base::Mixins
     def self.update!
-      self.fetch_current_trip do |trip|
-        self.generate_status_from_trip(trip) do |status, emoji|
-          return self.post_default_status! if status.nil?
-          if self.limited_availability? and !self.weekend?
-            status = status + " (My work phone is off. Availability might be limited.)"
-          end
-          return self.post_new_status!(status: status, emoji: emoji)
+      fetch_current_trip do |trip|
+        generate_status_from_trip(trip) do |status, emoji|
+          return post_default_status! if status.nil?
+
+          status += ' (My work phone is off. Availability might be limited.)' if limited_availability? && !weekend?
+          return post_new_status!(status: status, emoji: emoji)
         end
       end
-      SlackStatusBot.logger.warn "No trip found. Posting default status."
-      self.post_default_status!
+      SlackStatusBot.logger.warn 'No trip found. Posting default status.'
+      post_default_status!
     end
 
-    private
     def self.currently_flying_on_work_trip?(trip)
       flight = trip[:todays_flight]
       !flight.empty?
@@ -29,15 +27,20 @@ module SlackStatusBot
       trip.gsub(/^Vacation: .* until (.*)$/, '\1')
     end
 
+    def self.beach_return_date(trip)
+      trip.gsub(/^.*Beach: .* until (.*)$/, '\1')
+    end
+
     def self.render_travel_statuses
       container = ERB.new(File.read(SlackStatusBot::TRAVEL_STATUSES_FILE))
-      container.result()
+      container.result
     end
 
     def self.get_status_and_emoji(trip)
       @statuses ||= YAML.load(File.read(SlackStatusBot::TRAVEL_STATUSES_FILE),
-                             symbolize_names: true)
-      raise "No statuses found." if @statuses.nil?
+                              symbolize_names: true)
+      raise 'No statuses found.' if @statuses.nil?
+
       trip_name = trip[:trip_name]
       found_status =
         @statuses.select do |status_info|
@@ -47,27 +50,28 @@ module SlackStatusBot
           SlackStatusBot.logger.debug("Trip: [#{trip_name}], Regexp: [#{regexp}]")
           Regexp.new(regexp).match? trip_name
         end.first
-      return nil if found_status.nil? or found_status.empty?
-      return found_status
+      return nil if found_status.nil? || found_status.empty?
+
+      found_status
     end
 
     def self.client(trip_name)
       SlackStatusBot.logger.debug("Trip name: [#{trip_name}]")
-      trip_name.gsub(/- Remote$/,"").gsub(/^\w+:(.*)- (Week.*)$/,'\1').strip
+      trip_name.gsub(/- Remote$/, '').gsub(/^\w+:(.*)- (Week.*)$/, '\1').strip
     end
 
     def self.generate_status_from_trip(trip)
-      raise "No trip found." if trip.nil?
+      raise 'No trip found.' if trip.nil?
 
       current_city = trip[:current_city]
       template_variables = binding
       template_variables.local_variable_set(:current_city, current_city)
-      template_variables.local_variable_set(:city_emoji, self.get_emoji_for_city(current_city))
+      template_variables.local_variable_set(:city_emoji, get_emoji_for_city(current_city))
       template_variables.local_variable_set(:trip_name, trip[:trip_name])
-      status_info = self.get_status_and_emoji(trip)
-      raise "The name for your current trip in TripIt is invalid." if status_info.nil?
+      status_info = get_status_and_emoji(trip)
+      raise 'The name for your current trip in TripIt is invalid.' if status_info.nil?
 
-      status_info_key = if self.currently_flying_on_work_trip?(trip)
+      status_info_key = if currently_flying_on_work_trip?(trip)
                           flight = trip[:todays_flight]
                           flight_info = "#{flight[:flight_number]}: #{flight[:origin]}-#{flight[:destination]}"
                           template_variables.local_variable_set(:flight_info, flight_info)
@@ -78,14 +82,14 @@ module SlackStatusBot
       status_and_emoji = status_info[status_info_key]
       status = ERB.new(status_and_emoji[:status]).result(template_variables)
       emoji = ERB.new(status_and_emoji[:emoji]).result(template_variables)
-      yield(status,emoji)
+      yield(status, emoji)
     end
 
     def self.fetch_current_trip
       uri = [ENV['TRIPIT_API_URL'], 'current_trip'].join('/')
       response = HTTParty.get(uri, headers: {
-        'x-api-key': ENV['TRIPIT_API_KEY']
-      })
+                                'x-api-key': ENV['TRIPIT_API_KEY']
+                              })
       if response.code.to_i != 200
         SlackStatusBot.logger.error("Failed to get current trip: #{response.body}")
         return nil
@@ -93,6 +97,7 @@ module SlackStatusBot
       trip = JSON.parse(response.body, symbolize_names: true)[:trip]
       SlackStatusBot.logger.debug("Current trip: #{trip}")
       return nil if trip.empty?
+
       yield trip
     end
 

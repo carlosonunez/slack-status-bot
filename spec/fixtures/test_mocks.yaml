@@ -31,6 +31,13 @@ not_in_air:
     current_city: Anywhere, US
     status: 'Out of office until 8/18/2021'
     emoji: ':ooo:'
+  beach:
+    flights: {}
+    current_trip: 'Work: Beach: whatever until 8/30/2021'
+    current_city: Anywhere, US
+    status: 'Beach until 8/30/2021. https://todos.fake'
+    emoji: ':beach_with_umbrella:'
+
 in_air:
   business:
     flights:
@@ -76,3 +83,14 @@ in_air:
     current_city: Anywhere, US
     status: 'Out of office until 8/18/2021'
     emoji: ':ooo:'
+  beach:
+    flights:
+      flight_number: AA1
+      origin: JFK
+      destination: LAX
+      depart_time: 123456789
+      arrive_time: 234567890
+    current_trip: 'Work: Beach: whatever until 8/30/2021'
+    current_city: Anywhere, US
+    status: 'Beach until 8/30/2021. https://todos.fake'
+    emoji: ':beach_with_umbrella:'

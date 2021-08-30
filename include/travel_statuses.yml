@@ -13,13 +13,6 @@
   not_flying:
     status: "Partying it up!"
     emoji: ":tophat:"
-- status_regexp: "<%= employer %> Day"
-  flying:
-    status: "On my way to <%= employer %> Day! <%= flight_info %>"
-    emoji: ":continopug"
-  not_flying:
-    status: "<%= employer %> Day"
-    emoji: ":continopug:"
 - status_regexp: "^<%= employer %>:.* - Week [0-9]{1,}$"
   flying:
     status: "<%= client(trip_name) %>: <%= flight_info %>"
@@ -28,6 +21,9 @@
     status: "<%= client(trip_name) %> @ <%= current_city %>"
     emoji: "<%= city_emoji %>"
 - status_regexp: "^<%= employer %>:.*- Remote$"
+  flying:
+    status: "<%= client(trip_name) %> @ Home"
+    emoji: ":house_with_garden:"
   not_flying:
     status: "<%= client(trip_name) %> @ Home"
     emoji: ":house_with_garden:"
@@ -38,3 +34,10 @@
   not_flying:
     status: "Out of office until <%= ooo_return_date(trip_name) %>"
     emoji: ":ooo:"
+- status_regexp: "^<%= employer %>: Beach:"
+  flying:
+    status: "Beach until <%= beach_return_date(trip_name) %>. <%= ENV['TODOS_LINK'] %>"
+    emoji: ":beach_with_umbrella:"
+  not_flying:
+    status: "Beach until <%= beach_return_date(trip_name) %>. <%= ENV['TODOS_LINK'] %>"
+    emoji: ":beach_with_umbrella:"
