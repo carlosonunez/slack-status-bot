@@ -10,52 +10,24 @@ on:
       - '*.Dockerfile'
 
 jobs:
-  install-docker-compose:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-
-      - name: Install Docker Compose
-        run: curl -L ${DOCKER_COMPOSE_URL}/docker-compose-`uname -s`-`uname -m` > ./docker-compose &&
-             chmod +x ./docker-compose
-        env:
-          DOCKER_COMPOSE_URL: https://github.com/docker/compose/releases/download/1.22.0
-
-      - name: Store Docker Compose
-        uses: actions/upload-artifact@v2
-        with:
-          name: docker-compose
-          path: ./docker-compose
-  unit-tests:
-    runs-on: ubuntu-latest
-    needs:
-      - install-docker-compose
-    steps:
-      - name: Get Docker Compose
-        uses: actions/download-artifact@v2
-        with:
-          name: docker-compose
-      - name: Make executable
-        run: chmod +x ./docker-compose
       - name: Decrypt environment file
-        run: ./docker-compose -f docker-compose.ci.yml run --rm decrypt-env
+        run: docker-compose -f docker-compose.ci.yml run --rm decrypt-env
         env:
           ENV_PASSWORD: ${{ secrets.env_file_encryption_key }}
       - name: Unit tests
-        run: ./docker-compose run --rm unit
+        run: docker-compose run --rm unit
   update-serverless-functions:
     runs-on: ubuntu-latest
     needs:
       - unit-tests
     steps:
-      - name: Get Docker Compose
-        uses: actions/download-artifact@v2
-        with:
-          name: docker-compose
-      - name: Make executable
-        run: chmod +x ./docker-compose
+      - uses: actions/checkout@v1
       - name: Decrypt environment file
-        run: ./docker-compose -f docker-compose.ci.yml run --rm decrypt-env
+        run: docker-compose -f docker-compose.ci.yml run --rm decrypt-env
         env:
           ENV_PASSWORD: ${{ secrets.env_file_encryption_key }}
       - name: Deploy serverless functions
