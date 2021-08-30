@@ -47,6 +47,22 @@ describe 'Given a function that obtains parameters from an AWS Lambda API invoca
         .to eq expected
     end
   end
+  context 'When it receives a body instead of URL query parameters' do
+    example 'it to return parameters', :unit do
+      fake_event = {
+        'body': {
+          foo: 'bar',
+          baz: '6'
+        }.to_json
+      }
+      expected = {
+        foo: 'bar',
+        baz: '6'
+      }
+      expect(SlackStatusBot::Listeners::AWSLambda.params(fake_event))
+        .to eq expected
+    end
+  end
 end
 
 describe 'Given a listener that sets ad-hoc status updates from AWS Lambda' do
