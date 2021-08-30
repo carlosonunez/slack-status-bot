@@ -1,6 +1,7 @@
 module SlackStatusBot
   module Environment
     @required_environment_variables = %w[
+      ENABLED_INTEGRATIONS
       SLACK_API_DEFAULT_STATUS
       SLACK_API_DEFAULT_STATUS_EMOJI
       SLACK_API_KEY

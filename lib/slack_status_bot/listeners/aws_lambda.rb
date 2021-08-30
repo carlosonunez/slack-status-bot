@@ -43,6 +43,10 @@ module SlackStatusBot
         query_params.transform_keys(&:to_sym)
       end
 
+      def self.param_key(event, key, default = nil)
+        get_key_from_sym_or_string(params(event), key, default)
+      end
+
       def self.get_key_from_sym_or_string(hash, key, default = nil)
         hash[key.to_sym] || hash[key.to_s] || default
       end
