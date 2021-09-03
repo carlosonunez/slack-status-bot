@@ -21,9 +21,13 @@ module SlackStatusBot
       end
 
       def post_default_status!(ignore_status_expiration: false)
-        API.post_status!(status: ENV['SLACK_API_DEFAULT_STATUS'],
-                         emoji: ENV['SLACK_API_DEFAULT_STATUS_EMOJI'],
-                         ignore_status_expiration: ignore_status_expiration)
+        if !status_expiration_stale? && !ignore_status_expiration
+          SlackStatusBot.logger.warn 'Current status has not expired; leaving it alone'
+          return false
+        end
+
+        API.post_status!(ENV['SLACK_API_DEFAULT_STATUS'],
+                         ENV['SLACK_API_DEFAULT_STATUS_EMOJI'])
       end
 
       def status_expiration_stale?
