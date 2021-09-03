@@ -25,9 +25,14 @@ module SlackStatusBot
           SlackStatusBot.logger.warn 'Current status has not expired; leaving it alone'
           return false
         end
-
-        API.post_status!(ENV['SLACK_API_DEFAULT_STATUS'],
-                         ENV['SLACK_API_DEFAULT_STATUS_EMOJI'])
+        status = ENV['SLACK_API_DEFAULT_STATUS']
+        emoji = ENV['SLACK_API_DEFAULT_STATUS_EMOJI']
+        if weekend? && !on_vacation?(status)
+          status = 'Yay, weekend!'
+          emoji = ':sunglasses:'
+          SlackStatusBot.logger.info 'About to yield cuz weekend'
+        end
+        API.post_status!(status, emoji)
       end
 
       def status_expiration_stale?
