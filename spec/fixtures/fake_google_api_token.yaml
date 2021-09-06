@@ -1,0 +1,2 @@
+---
+fake@fake.email: '{"client_id":"fake-client-id","access_token":"fake-access-token","refresh_token":"fake-refresh-token","scope":["https://www.googleapis.com/auth/calendar.readonly"],"expiration_time_millis":"123"}'

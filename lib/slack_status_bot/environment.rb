@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SlackStatusBot
   module Environment
     @required_environment_variables = %w[
@@ -10,9 +12,13 @@ module SlackStatusBot
       TRIPIT_API_URL
       TRIPIT_API_KEY
     ]
-    @optional_environment_variables = [
-      'LOG_LEVEL'
+    @optional_environment_variables = %w[
+      LOG_LEVEL
+      GOOGLE_CALENDAR_CLIENT_ID
+      GOOGLE_CALENDAR_TOKEN_JSON
+      GOOGLE_CALENDAR_USER_ID
     ]
+    # Are all required environment variables defined?
     def self.configured?
       vars_to_scan = @required_environment_variables.reject do |var|
         @optional_environment_variables.include? var
