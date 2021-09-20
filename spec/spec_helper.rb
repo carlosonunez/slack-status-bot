@@ -7,6 +7,10 @@ require 'slack_status_bot'
 require_relative 'helpers/test_mocks'
 
 RSpec.configure do |config|
+  config.before(:all, unit: true) do
+    SpecHelpers::Testdata.wait_for_local_dynamodb_or_fail!
+    SpecHelpers::Testdata.wait_for_local_dynamodb_or_fail!
+  end
   config.before(:each, unit: true) do
     $test_mocks = YAML.safe_load(File.read('./spec/fixtures/test_mocks.yaml'),
                                  symbolize_names: true)
@@ -15,6 +19,23 @@ RSpec.configure do |config|
 end
 
 module SpecHelpers
+  module Testdata
+    def self.wait_for_local_dynamodb_or_fail!(attempts = 0)
+      raise 'Failed to connect to DynamoDB' if attempts == 5
+
+      puts "INFO: Waiting up to 60 seconds for local DynamoDB to be ready at #{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}"
+      Socket.tcp(ENV['DYNAMODB_HOST'], ENV['DYNAMODB_PORT'], connect_timeout: 60)
+    rescue StandardError => e
+      if e.message.match?(/Connection refused/)
+        puts "WARNING: Failed to connect; waiting #{attempts * attempts} seconds before next attempt..."
+        sleep(attempts * attempts)
+        wait_for_local_dynamodb_or_fail!(attempts + 1)
+      else
+        raise e
+      end
+    end
+  end
+
   module TestMocks
     extend RSpec::Mocks::ExampleMethods
     def self.mock_emojis_file!

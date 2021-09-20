@@ -1,5 +1,9 @@
 version: '2.2'
 services:
+  dynamodb:
+    image: amazon/dynamodb-local
+    ports:
+      - 8080:8080
   ruby:
     build:
       context: .
@@ -48,6 +52,8 @@ services:
       - ENVIRONMENT=test
       - LOAD_PATH="/app/spec/unit;/app/spec;/app/lib"
       - LOG_LEVEL
+      - DYNAMODB_HOST=dynamodb
+      - DYNAMODB_PORT=8080
     env_file: .env.test
     command:
       - --tag

@@ -28,6 +28,10 @@ module SlackStatusBot
 
           true
         end
+
+        def self.existing_tokens(_client_id)
+          false
+        end
       end
     end
   end
