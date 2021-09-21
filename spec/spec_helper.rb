@@ -56,7 +56,7 @@ module SpecHelpers
         status = this_response[:status]
         emoji = this_response[:emoji]
         if after_hours
-          status += ' (My work phone is off. Availability might be limited.)'
+          status += ' (unavailable)'
           emoji = ':sleeping:'
         end
       end
