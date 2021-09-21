@@ -11,7 +11,7 @@ module SlackStatusBot
           return post_default_status!(ignore_status_expiration: ignore_status_expiration) if status.nil?
 
           if limited_availability? && !weekend?
-            status += ' (My work phone is off. Availability might be limited.)'
+            status += ' (unavailable)'
             emoji = ':sleeping:'
           end
           return post_new_status!(status: status,
