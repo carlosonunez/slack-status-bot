@@ -34,10 +34,17 @@
   not_flying:
     status: "Out of office until <%= ooo_return_date(trip_name) %>"
     emoji: ":ooo:"
-- status_regexp: "^<%= employer %>: Beach:"
+- status_regexp: "^<%= employer %>: Beach: .* until .*"
   flying:
     status: "Beach until <%= beach_return_date(trip_name) %>. <%= ENV['TODOS_LINK'] %>"
     emoji: ":beach_with_umbrella:"
   not_flying:
     status: "Beach until <%= beach_return_date(trip_name) %>. <%= ENV['TODOS_LINK'] %>"
     emoji: ":beach_with_umbrella:"
+- status_regexp: "^<%= employer %>: Conference: .* until .*"
+  flying:
+    status: "[<%= flight_info %>] \"<%= conf_name(trip_name) %>\" conference until <%= conf_return_date(trip_name) %>"
+    emoji: ":airplane:"
+  not_flying:
+    status: "At the \"<%= conf_name(trip_name) %>\" conference until <%= conf_return_date(trip_name) %>"
+    emoji: ":stadium:"

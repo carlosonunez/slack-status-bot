@@ -36,6 +36,14 @@ module SlackStatusBot
       trip.gsub(/^.*Beach: .* until (.*)$/, '\1')
     end
 
+    def self.conf_return_date(trip)
+      trip.gsub(/^.*Conference: .* until (.*)$/, '\1')
+    end
+
+    def self.conf_name(trip)
+      trip.gsub(/^.*Conference: (.*) until.*$/, '\1')
+    end
+
     def self.render_travel_statuses
       container = ERB.new(File.read(SlackStatusBot::TRAVEL_STATUSES_FILE))
       container.result
