@@ -14,6 +14,11 @@ module SlackStatusBot
           end
         end
 
+        def self.init_tokens_database!
+          namespace = 'google_access_and_refresh_tokens'
+          SlackStatusBot::Receivers::Persistence::Databases::DynamoDB.create!(namespace: namespace)
+        end
+
         def self.client_id_valid?
           app_name = ENV['GOOGLE_APPLICATION_NAME']
           client = JSON.parse(ENV['GOOGLE_CLIENT_ID_JSON'],

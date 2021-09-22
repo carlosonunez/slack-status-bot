@@ -19,10 +19,7 @@ describe 'Given a class that performs Google API chores' do
 
   context 'When we retrieve access and refresh tokens' do
     before do
-      Dynamoid.configure do |config|
-        config.endpoint = "http://#{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}"
-        config.region = 'us-tirefire-1'
-      end
+      Base.setup_database!
     end
     example 'We can retrieve a stored token from DynamoDB', :unit do
       creds = Models::Credentials.new(client_id: 'fake-client-id',
