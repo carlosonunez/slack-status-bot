@@ -9,7 +9,6 @@ require_relative 'helpers/test_mocks'
 RSpec.configure do |config|
   config.before(:all, unit: true) do
     SpecHelpers::Testdata.wait_for_local_dynamodb_or_fail!
-    SpecHelpers::Testdata.wait_for_local_dynamodb_or_fail!
   end
   config.before(:each, unit: true) do
     $test_mocks = YAML.safe_load(File.read('./spec/fixtures/test_mocks.yaml'),
@@ -23,11 +22,14 @@ module SpecHelpers
     def self.wait_for_local_dynamodb_or_fail!(attempts = 0)
       raise 'Failed to connect to DynamoDB' if attempts == 5
 
-      puts "INFO: Waiting up to 60 seconds for local DynamoDB to be ready at #{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}"
+      logger = Logger.new($stdout)
+      logger.level = ENV['LOG_LEVEL'] || Logger::WARN
+
+      logger.info("Waiting up to 60 seconds for local DynamoDB to be ready at #{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}")
       Socket.tcp(ENV['DYNAMODB_HOST'], ENV['DYNAMODB_PORT'], connect_timeout: 60)
     rescue StandardError => e
       if e.message.match?(/Connection refused/)
-        puts "WARNING: Failed to connect; waiting #{attempts * attempts} seconds before next attempt..."
+        logger.warn("Failed to connect; waiting #{attempts * attempts} seconds before next attempt...")
         sleep(attempts * attempts)
         wait_for_local_dynamodb_or_fail!(attempts + 1)
       else
