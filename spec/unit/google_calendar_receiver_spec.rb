@@ -9,6 +9,7 @@ describe 'Given a class that performs Google API chores' do
   before(:all) do
     Base = SlackStatusBot::Receivers::Google::Base
     Models = SlackStatusBot::Receivers::Google::Models
+    ENV['DYNAMODB_LOCAL'] = 'true'
   end
   context 'When we validate our environment' do
     example 'It validates correct client JSON', :unit do
@@ -18,17 +19,15 @@ describe 'Given a class that performs Google API chores' do
   end
 
   context 'When we retrieve access and refresh tokens' do
-    before do
-      Base.setup_database!
-    end
     example 'We can retrieve a stored token from DynamoDB', :unit do
+      Base.init_tokens_database!
       creds = Models::Credentials.new(client_id: 'fake-client-id',
                                       access_token: 'fake-access-token',
                                       refresh_token: 'fake-refresh-token')
       creds.save
-      tokens = Base.existing_tokens('fake-client-id')
-      expect(tokens[:access_token]).to eq 'fake-access-token'
-      expect(tokens[:refresh_token]).to eq 'fake-refresh-token'
+      creds = Base.creds_for_client_id('fake-client-id')
+      expect(creds.access_token).to eq 'fake-access-token'
+      expect(creds.refresh_token).to eq 'fake-refresh-token'
     end
   end
 end

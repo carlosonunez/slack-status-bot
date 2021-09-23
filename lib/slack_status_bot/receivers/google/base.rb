@@ -7,6 +7,8 @@ module SlackStatusBot
     module Google
       # This class contains functions that handle "Google API chores," such
       # as authentication and response handling.
+      DynamoDB = SlackStatusBot::Receivers::Persistence::Databases::DynamoDB
+
       class Base
         def self.environment_configured?
           %w[GOOGLE_APPLICATION_NAME GOOGLE_CLIENT_ID_JSON].each do |env_var|
@@ -15,8 +17,7 @@ module SlackStatusBot
         end
 
         def self.init_tokens_database!
-          namespace = 'google_access_and_refresh_tokens'
-          SlackStatusBot::Receivers::Persistence::Databases::DynamoDB.create!(namespace: namespace)
+          DynamoDB.start!(namespace: 'google_access_and_refresh_tokens')
         end
 
         def self.client_id_valid?
@@ -34,8 +35,8 @@ module SlackStatusBot
           true
         end
 
-        def self.existing_tokens(_client_id)
-          false
+        def self.creds_for_client_id(client_id)
+          Models::Credentials.find(client_id)
         end
       end
     end

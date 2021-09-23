@@ -3,6 +3,7 @@
 require 'logger'
 require 'httparty'
 require 'json'
+require 'slack_status_bot/logging'
 require 'slack_status_bot/listeners'
 require 'slack_status_bot/receivers'
 require 'slack_status_bot/base'

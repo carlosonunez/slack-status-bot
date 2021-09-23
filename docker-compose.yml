@@ -10,9 +10,6 @@ services:
       dockerfile: ruby.Dockerfile
       args:
         ENVIRONMENT: test
-    environment:
-      - ENVIRONMENT=test
-      - LOG_LEVEL
     volumes:
       - $PWD:/app:ro,delegated # fix rspec slowness due to size of vendor dir
     working_dir: /app
@@ -49,11 +46,8 @@ services:
     extends: ruby
     entrypoint: rspec
     environment:
-      - ENVIRONMENT=test
       - LOAD_PATH="/app/spec/unit;/app/spec;/app/lib"
       - LOG_LEVEL
-      - DYNAMODB_HOST=dynamodb
-      - DYNAMODB_PORT=8000
     env_file: .env.test
     command:
       - --tag
