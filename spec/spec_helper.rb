@@ -9,6 +9,7 @@ require_relative 'helpers/test_mocks'
 RSpec.configure do |config|
   config.before(:all, unit: true) do
     SpecHelpers::Testdata.wait_for_local_dynamodb_or_fail!
+    SpecHelpers::Testdata.clear!
   end
   config.before(:each, unit: true) do
     $test_mocks = YAML.safe_load(File.read('./spec/fixtures/test_mocks.yaml'),
@@ -19,17 +20,26 @@ end
 
 module SpecHelpers
   module Testdata
+    def self.clear!
+      endpoint = "http://#{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}"
+      client = Aws::DynamoDB::Client.new(endpoint: endpoint,
+                                         region: 'us-tirefire-1',
+                                         access_key_id: 'whatever',
+                                         secret_access_key: 'supersecret')
+      client.list_tables[:table_names].each do |tbl|
+        SlackStatusBot.logger.debug("Deleting local table #{tbl}")
+        client.delete_table(tbl)
+      end
+    end
+
     def self.wait_for_local_dynamodb_or_fail!(attempts = 0)
       raise 'Failed to connect to DynamoDB' if attempts == 5
 
-      logger = Logger.new($stdout)
-      logger.level = ENV['LOG_LEVEL'] || Logger::WARN
-
-      logger.info("Waiting up to 60 seconds for local DynamoDB to be ready at #{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}")
+      SlackStatusBot.logger.info("Waiting up to 60 seconds for local DynamoDB to be ready at #{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}")
       Socket.tcp(ENV['DYNAMODB_HOST'], ENV['DYNAMODB_PORT'], connect_timeout: 60)
     rescue StandardError => e
       if e.message.match?(/Connection refused/)
-        logger.warn("Failed to connect; waiting #{attempts * attempts} seconds before next attempt...")
+        SlackStatusBot.logger.warn("Failed to connect; waiting #{attempts * attempts} seconds before next attempt...")
         sleep(attempts * attempts)
         wait_for_local_dynamodb_or_fail!(attempts + 1)
       else
