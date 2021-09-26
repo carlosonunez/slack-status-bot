@@ -38,6 +38,12 @@ module SlackStatusBot
         def self.creds_for_client_id(client_id)
           Models::Credentials.find(client_id)
         end
+
+        # Updates an access token
+        # TODO: Create a workflow for updating and clearing refresh tokens.
+        def self.update_access_token!(client_id:, access_token:)
+          Models::Credentials.find(client_id).update_attribute(:access_token, access_token)
+        end
       end
     end
   end
