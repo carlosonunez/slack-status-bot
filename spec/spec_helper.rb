@@ -7,7 +7,7 @@ require 'slack_status_bot'
 require_relative 'helpers/test_mocks'
 
 RSpec.configure do |config|
-  config.before(:all, unit: true) do
+  config.before(:suite, unit: true) do
     SpecHelpers::Testdata.wait_for_local_dynamodb_or_fail!
     SpecHelpers::Testdata.clear!
   end
@@ -28,7 +28,7 @@ module SpecHelpers
                                          secret_access_key: credentials[:secret_key],
                                          region: credentials[:region])
       client.list_tables[:table_names].each do |tbl|
-        SlackStatusBot.logger.debug("Deleting local table #{tbl}")
+        SlackStatusBot.logger.debug("===> Deleting local table #{tbl}")
         client.delete_table({ table_name: tbl })
       end
     end
