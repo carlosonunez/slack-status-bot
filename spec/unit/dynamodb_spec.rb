@@ -22,9 +22,9 @@ describe 'Given a database initializer for DynamoDB' do
       expect(DynamoDB).not_to receive(:assumed_role_credentials)
       got = Dynamoid.config
       expect(got.namespace).to eq 'receivers-foo'
-      expect(got.access_key).to be nil
-      expect(got.secret_key).to be nil
-      expect(got.region).to be nil
+      expect(got.access_key).to be 'fake-key'
+      expect(got.secret_key).to be 'supersecret'
+      expect(got.region).to be 'us-tirefire-1'
       expect(got.credentials).to be nil
     end
   end

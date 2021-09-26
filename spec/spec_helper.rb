@@ -21,14 +21,15 @@ end
 module SpecHelpers
   module Testdata
     def self.clear!
+      credentials = SlackStatusBot::Receivers::Persistence::Databases::DynamoDB::LOCAL_CREDENTIALS
       endpoint = "http://#{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}"
       client = Aws::DynamoDB::Client.new(endpoint: endpoint,
-                                         region: 'us-tirefire-1',
-                                         access_key_id: 'whatever',
-                                         secret_access_key: 'supersecret')
+                                         access_key_id: credentials[:access_key],
+                                         secret_access_key: credentials[:secret_key],
+                                         region: credentials[:region])
       client.list_tables[:table_names].each do |tbl|
         SlackStatusBot.logger.debug("Deleting local table #{tbl}")
-        client.delete_table(tbl)
+        client.delete_table({ table_name: tbl })
       end
     end
 

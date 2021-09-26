@@ -10,6 +10,18 @@ module SlackStatusBot
         class DynamoDB
           extend SlackStatusBot::Logging
 
+          # NOTE: DynamoDB creds must be consistent
+          #
+          # Because DynamoDB tables are segmented by account and because we are dropping
+          # tables whenever we start our test suite, we need to make sure that our
+          # spec_helper has the same credentials as that used by whatever class
+          # uses this to initialize a DynamoDB database.
+          LOCAL_CREDENTIALS = {
+            access_key: 'fake-key',
+            secret_key: 'supersecret',
+            region: 'us-tirefire-1'
+          }.freeze
+
           def self.start!(namespace:)
             Dynamoid.configure do |config|
               config.namespace = "receivers-#{namespace}"
@@ -17,6 +29,9 @@ module SlackStatusBot
                 logger.debug("DynamoDB namespace => #{config.namespace}, \
 local host: #{ENV['DYNAMODB_HOST']}, port: #{ENV['DYNAMODB_PORT']}")
                 config.endpoint = "http://#{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}"
+                config.access_key = LOCAL_CREDENTIALS[:access_key]
+                config.secret_key = LOCAL_CREDENTIALS[:secret_key]
+                config.region = LOCAL_CREDENTIALS[:region]
               else
                 config.region = aws_credentials[:region]
                 if aws_credentials[:is_sts_token]
