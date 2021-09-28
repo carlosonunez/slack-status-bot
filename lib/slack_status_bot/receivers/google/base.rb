@@ -50,10 +50,12 @@ module SlackStatusBot
               code: code,
               base_url: OOB_URL
             )
-            {
+            tokens = {
               access_token: credentials['access_token'],
               refresh_token: credentials['refresh_token']
             }
+            SlackStatusBot.logger.debug("Returning tokens: #{tokens}")
+            tokens
           rescue StandardError => e
             raise "Failed to generate access and refresh tokens: #{e}"
           end

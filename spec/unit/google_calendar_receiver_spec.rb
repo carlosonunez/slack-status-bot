@@ -119,7 +119,7 @@ describe 'Given a class that performs Google API chores' do
                             get_and_store_credentials_from_code: {
                               'access_token': 'fake-token',
                               'refresh_token': 'fake-refresh'
-                            })
+                            }.transform_keys(&:to_s))
       allow(Google::Auth::UserAuthorizer)
         .to receive(:new)
         .and_return(fauxthorizer)
