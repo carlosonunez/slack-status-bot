@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'slack_status_bot/persistence/databases/dynamodb'
 
 describe 'Given a database initializer for DynamoDB' do
   before(:all) do
-    DynamoDB = SlackStatusBot::Receivers::Persistence::Databases::DynamoDB
+    DynamoDB = SlackStatusBot::Persistence::Databases::DynamoDB
   end
   after(:each) do
     Dynamoid.configure do |config|

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module SlackStatusBot
-  module Receivers
+  module Errors
     module Google
       # This class contains some exceptions we might see while working
       # with Google APIs.
-      module Errors
+      module Authentication
         # We need to explicitly authenticate first before we can use these APIs.
         class NotAuthenticated < StandardError
           def initialize

@@ -21,7 +21,7 @@ end
 module SpecHelpers
   module Testdata
     def self.clear!
-      credentials = SlackStatusBot::Receivers::Persistence::Databases::DynamoDB::LOCAL_CREDENTIALS
+      credentials = SlackStatusBot::Persistence::Databases::DynamoDB::LOCAL_CREDENTIALS
       endpoint = "http://#{ENV['DYNAMODB_HOST']}:#{ENV['DYNAMODB_PORT']}"
       client = Aws::DynamoDB::Client.new(endpoint: endpoint,
                                          access_key_id: credentials[:access_key],
