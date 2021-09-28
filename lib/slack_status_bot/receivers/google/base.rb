@@ -18,6 +18,9 @@ module SlackStatusBot
         def self.authenticate!(auth_if_creds_missing: false)
           raise ClientInvalid unless client_valid?
           raise NotAuthenticated if credentials.nil? && !auth_if_creds_missing
+
+          tokens = generate_tokens_or_raise!
+          persist_tokens_or_raise!(tokens)
         end
 
         def self.environment_configured?

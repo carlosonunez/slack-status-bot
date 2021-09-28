@@ -78,6 +78,16 @@ describe 'Given a class that performs Google API chores' do
                            )
         end
       end
+      context 'And we have explicitly said we want to authenticate' do
+        example 'Then initiate the offline authentication flow', :unit do
+          allow(Base).to receive(:credentials).and_return(nil)
+          allow(Base).to receive(:generate_tokens_or_raise!).and_return({})
+          allow(Base).to receive(:persist_tokens_or_raise!).and_return(true)
+          expect(Base).to receive(:generate_tokens_or_raise!)
+          expect { Base.authenticate!(auth_if_creds_missing: true) }
+            .not_to raise_error
+        end
+      end
     end
   end
 end
