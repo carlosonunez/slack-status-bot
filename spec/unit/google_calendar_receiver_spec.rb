@@ -4,6 +4,7 @@ require 'spec_helper'
 require 'slack_status_bot/receivers/google/base'
 require 'slack_status_bot/receivers/google/models'
 require 'dynamoid'
+require 'googleauth'
 
 # Handle storing and purging test creds.
 class TestCredentials
@@ -36,6 +37,7 @@ describe 'Given a class that performs Google API chores' do
   before(:all) do
     Base = SlackStatusBot::Receivers::Google::Base
     Models = SlackStatusBot::Receivers::Google::Models
+    InMemoryTokenStore = SlackStatusBot::Receivers::Google::InMemoryTokenStore
     ENV['DYNAMODB_LOCAL'] = 'true'
     Base.init_tokens_database!
   end
@@ -108,6 +110,30 @@ describe 'Given a class that performs Google API chores' do
 
       store.delete('foo')
       expect(store.load('foo')).to be nil
+    end
+
+    example 'Then we are prompted to navigate to a URL to complete authentication', :unit do
+      fauxthorizer = double(Google::Auth::UserAuthorizer,
+                            get_credentials: nil,
+                            get_authorization_url: 'https://example.net/12345',
+                            get_and_store_credentials_from_code: {
+                              'access_token': 'fake-token',
+                              'refresh_token': 'fake-refresh'
+                            })
+      allow(Google::Auth::UserAuthorizer)
+        .to receive(:new)
+        .and_return(fauxthorizer)
+      allow($stdin).to receive(:gets).and_return('12345')
+      expected = <<~MESSAGE
+        ==> Visit this URL to complete authentication: https://example.net/12345
+        ==> Then enter the code that you received here:#{' '}
+      MESSAGE
+      expect { Base.generate_tokens_or_raise!('fake-scope') }
+        .to output(expected.chop)
+        .to_stdout
+      tokens = Base.generate_tokens_or_raise!('fake-scope')
+      expect(tokens[:access_token]).to eq 'fake-token'
+      expect(tokens[:refresh_token]).to eq 'fake-refresh'
     end
   end
 end

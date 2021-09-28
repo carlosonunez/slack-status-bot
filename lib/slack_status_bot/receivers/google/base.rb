@@ -10,6 +10,7 @@ module SlackStatusBot
       # This class contains functions that handle "Google API chores," such
       # as authentication and response handling.
       DynamoDB = SlackStatusBot::Receivers::Persistence::Databases::DynamoDB
+      OOB_URL = 'urn:ietf:wg:oauth:2.0:oob'
 
       # An in-memory representation of a TokenStore
       class InMemoryTokenStore < ::Google::Auth::TokenStore
@@ -34,6 +35,29 @@ module SlackStatusBot
       # Base provides methods for authenticating with Google APIs.
       class Base
         include Errors
+
+        # Generate a set of access and refresh tokens. Assume that none currently exist.
+        def self.generate_tokens_or_raise!(oauth_scopes, user_id = 'default')
+          token_store = InMemoryTokenStore.new
+          authorizer = ::Google::Auth::UserAuthorizer.new(client_id, oauth_scopes, token_store)
+          auth_url = authorizer.get_authorization_url(base_url: OOB_URL)
+          $stdout.print "==> Visit this URL to complete authentication: #{auth_url}\n"
+          $stdout.print '==> Then enter the code that you received here: '
+          code = $stdin.gets
+          begin
+            credentials = authorizer.get_and_store_credentials_from_code(
+              user_id: user_id,
+              code: code,
+              base_url: OOB_URL
+            )
+            {
+              access_token: credentials['access_token'],
+              refresh_token: credentials['refresh_token']
+            }
+          rescue StandardError => e
+            raise "Failed to generate access and refresh tokens: #{e}"
+          end
+        end
 
         # Creates an in-memory representation of a TokenStore to avoid persisting
         # stale tokens in the filesystems.
@@ -69,6 +93,10 @@ module SlackStatusBot
 
         def self.client_id
           client[:client_id]
+        end
+
+        def self.client_secret
+          client[:client_secret]
         end
 
         # Tests a Google API client to ensure that required metadata is present.
