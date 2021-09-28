@@ -90,6 +90,26 @@ describe 'Given a class that performs Google API chores' do
       end
     end
   end
+
+  context 'When we start the authentication flow' do
+    # Google's authorizer requires that the user provide a file or a Redis instance
+    # to store access and refresh tokens. This is much more stateful than I'd like.
+    # Furthermore, mmap2 doesn't seem to work (throws errno 22 every time I try using it)
+    # and mock_redis doesn't expose a URL that Google's Redis client can use.
+    #
+    # Instead, we'll create a simple implementation of a `TokenStore` that stores
+    # token data in a hashmap.
+    example 'Then we are able to create an in-memory local store to use as a TokenStore', :unit do
+      store = Base.create_local_store!
+      expect(store.class).to be < Google::Auth::TokenStore
+
+      store.store('foo', { bar: 'baaz' })
+      expect(store.load('foo')[:bar]).to eq 'baaz'
+
+      store.delete('foo')
+      expect(store.load('foo')).to be nil
+    end
+  end
 end
 
 describe 'Given a receiver for Slack Status Bot that can retrieve statuses from Google Calendar' do

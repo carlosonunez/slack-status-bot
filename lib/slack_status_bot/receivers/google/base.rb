@@ -2,6 +2,7 @@
 
 require 'json'
 require 'slack_status_bot/receivers/google/errors'
+require 'googleauth/token_store'
 
 module SlackStatusBot
   module Receivers
@@ -10,8 +11,35 @@ module SlackStatusBot
       # as authentication and response handling.
       DynamoDB = SlackStatusBot::Receivers::Persistence::Databases::DynamoDB
 
+      # An in-memory representation of a TokenStore
+      class InMemoryTokenStore < ::Google::Auth::TokenStore
+        def initialize(_options = {})
+          super()
+          @store ||= {}
+        end
+
+        def load(id)
+          @store[id]
+        end
+
+        def store(id, token)
+          @store[id] = token
+        end
+
+        def delete(id)
+          @store.reject! { |k| k == id }
+        end
+      end
+
+      # Base provides methods for authenticating with Google APIs.
       class Base
         include Errors
+
+        # Creates an in-memory representation of a TokenStore to avoid persisting
+        # stale tokens in the filesystems.
+        def self.create_local_store!
+          InMemoryTokenStore.new
+        end
 
         # Attempts to obtain access and refresh tokens using offline three-legged OAuth.
         # NOTE: We are assuming that a OAuth client is used. Service accounts are not supported.
