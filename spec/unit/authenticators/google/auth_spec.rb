@@ -66,7 +66,7 @@ describe 'Given a helper class that retrieves or generates Google OAuth tokens' 
   end
 
   context 'When a client asks for a new set of tokens' do
-    example 'Then we are prompted to navigate to a URL to complete authentication', :unit do
+    example 'Then we receive tokens upon providing a code from a URL', :unit do
       fauxthorizer = double(Google::Auth::UserAuthorizer,
                             get_credentials: nil,
                             get_authorization_url: 'https://example.net/12345',
@@ -85,9 +85,9 @@ describe 'Given a helper class that retrieves or generates Google OAuth tokens' 
       expect { GoogleAuthenticator.generate_tokens_or_raise!('fake-scope') }
         .to output(expected.chop)
         .to_stdout
-      tokens = GoogleAuthenticator.generate_tokens_or_raise!('fake-scope')
-      expect(tokens[:access_token]).to eq 'fake-token'
-      expect(tokens[:refresh_token]).to eq 'fake-refresh'
+      creds = GoogleAuthenticator.generate_tokens_or_raise!('fake-scope')
+      expect(creds.access_token).to eq 'fake-token'
+      expect(creds.refresh_token).to eq 'fake-refresh'
     end
   end
 

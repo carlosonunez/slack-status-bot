@@ -25,17 +25,18 @@ module SlackStatusBot
         $stdout.print '==> Then enter the code that you received here: '
         code = $stdin.gets
         begin
-          credentials = authorizer.get_and_store_credentials_from_code(
+          tokens = authorizer.get_and_store_credentials_from_code(
             user_id: user_id,
             code: code,
             base_url: OOB_URL
           )
-          tokens = {
-            access_token: credentials['access_token'],
-            refresh_token: credentials['refresh_token']
-          }
-          SlackStatusBot.logger.debug("Returning tokens: #{tokens}")
-          tokens
+          credentials = Models::Google::Credentials.new(
+            client_id: client_id,
+            access_token: tokens['access_token'],
+            refresh_token: tokens['refresh_token']
+          )
+          credentials.save
+          credentials
         rescue StandardError => e
           raise "Failed to generate access and refresh tokens: #{e}"
         end
@@ -95,6 +96,13 @@ module SlackStatusBot
         true
       end
 
+      # Retrieve existing credentials or generate new credentials if none found.
+      def self.get_or_create_credentials!(scopes, user_id = 'default')
+        return credentials unless credentials.nil? || credentials.empty?
+
+        generate_tokens_or_raise!(scopes, user_id)
+      end
+
       def self.credentials
         Models::Google::Credentials.find(client_id)
       end
@@ -102,7 +110,7 @@ module SlackStatusBot
       # Updates an access token
       # TODO: Create a workflow for updating and clearing refresh tokens.
       def self.update_access_token!(access_token:)
-        Models::Google::Credentials.find(client_id).update_attribute(:access_token, access_token)
+        credentials.update_attribute(:access_token, access_token)
       end
     end
   end
