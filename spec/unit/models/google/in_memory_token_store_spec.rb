@@ -6,7 +6,7 @@ require 'slack_status_bot/models/google/in_memory_token_store'
 
 describe 'Given an in-memory token store used for authenticating a Google OAuth client' do
   before do
-    InMemoryTokenStore = SlackStatusBot::Models::Google::InMemoryTokenStore
+    InMemoryTokenStore ||= SlackStatusBot::Models::Google::InMemoryTokenStore
   end
   context 'When it is created' do
     example "Then it successfully creates and inherits from Google's TokenStore", :unit do

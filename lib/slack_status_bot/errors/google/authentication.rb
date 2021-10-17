@@ -27,6 +27,13 @@ module SlackStatusBot
             super(message)
           end
         end
+
+        # Throw this when the credentials provided are invalid
+        class AuthInvalid < StandardError
+          def initialize
+            super('Your access token is invalid or expired; please re-authenticate')
+          end
+        end
       end
     end
   end
