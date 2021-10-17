@@ -29,9 +29,11 @@ module SlackStatusBot
 
         # Resolves the Calendar's name to an ID.
         def id
-          @client.list_calendar_lists
-                 .items.select! { |cal| cal.summary.downcase == @name.downcase }
-                 .first.id
+          calendars = @client.list_calendar_lists
+                             .items.select! { |cal| cal.summary.downcase == @name.downcase }
+          return nil if calendars.length.zero?
+
+          calendars.first.id
         rescue ::Google::Apis::AuthorizationError
           raise SlackStatusBot::Errors::Google::Authentication::AuthInvalid
         end

@@ -34,24 +34,22 @@ describe 'Given a status receiver for Google Calendar' do
     context 'And our environment is configured' do
       before do
         ENV['GOOGLE_CALENDAR_NAME'] = 'fake-calendar'
+        @fake_calendars = {
+          'fake-calendar': 'fake-id',
+          'fake-calendar-2': 'fake-id-we-dont-want',
+          'fake-calendar-3': 'fake-id-we-dont-want'
+        }.transform_keys(&:to_s)
+        allow(Google::Apis::CalendarV3::CalendarService)
+          .to receive(:new)
+          .and_return(double(Google::Apis::CalendarV3::CalendarService,
+                             :authorization= => @creds,
+                             :list_calendar_lists => create_fake_cal_list(@fake_calendars)))
       end
       after do
         ENV['GOOGLE_CALENDAR_NAME'] = nil
       end
       context 'And the calendar name matches a real calendar' do
         example 'Then the matching Calendar object can be retrieved', :unit do
-          fake_calendars = {
-            'fake-calendar': 'fake-id',
-            'fake-calendar-2': 'fake-id-we-dont-want',
-            'fake-calendar-3': 'fake-id-we-dont-want'
-          }.transform_keys(&:to_s)
-          fake_client =
-            double(Google::Apis::CalendarV3::CalendarService,
-                   :authorization= => @creds,
-                   :list_calendar_lists => create_fake_cal_list(fake_calendars))
-          allow(Google::Apis::CalendarV3::CalendarService)
-            .to receive(:new)
-            .and_return(fake_client)
           allow(SlackStatusBot::Authenticators::Google)
             .to receive(:get_or_create_credentials!)
             .and_return(@creds)
@@ -60,6 +58,14 @@ describe 'Given a status receiver for Google Calendar' do
         end
       end
       context 'And the calendar name does not match a real calendar' do
+        example 'Then the matching Calendar object is not retrieved', :unit do
+          ENV['GOOGLE_CALENDAR_NAME'] = 'invalid-name'
+          allow(SlackStatusBot::Authenticators::Google)
+            .to receive(:get_or_create_credentials!)
+            .and_return(@creds)
+          calendar = Calendar.new
+          expect(calendar.id).to be_nil
+        end
       end
     end
   end
