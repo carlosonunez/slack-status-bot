@@ -114,6 +114,55 @@ describe 'Given a listener that sets ad-hoc status updates from AWS Lambda' do
     end
   end
 
+  example 'Then it does not post a status during weekends', :unit do
+    expected = {
+      statusCode: 422,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        status: 'error',
+        message: 'status updates are disabled during weekends and holidays'
+      }.to_json
+    }
+    allow(SlackStatusBot::Listeners::AWSLambda)
+      .to receive(:params)
+      .and_return(@params)
+    allow(SlackStatusBot::Listeners::AWSLambda)
+      .to receive(:weekend?)
+      .and_return(true)
+    expect(SlackStatusBot::Base::API)
+      .not_to receive(:post_status!)
+    expect(SlackStatusBot::Listeners::AWSLambda.update!({}))
+      .to eq(expected)
+  end
+
+  example 'Then it does not post a status during vacations', :unit do
+    expected = {
+      statusCode: 422,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        status: 'error',
+        message: 'status updates are disabled during weekends and holidays'
+      }.to_json
+    }
+    allow(SlackStatusBot::Listeners::AWSLambda)
+      .to receive(:params)
+      .and_return(@params)
+    allow(SlackStatusBot::Listeners::AWSLambda)
+      .to receive(:weekend?)
+      .and_return(false)
+    allow(SlackStatusBot::Listeners::AWSLambda)
+      .to receive(:currently_on_vacation?)
+      .and_return(true)
+    expect(SlackStatusBot::Base::API)
+      .not_to receive(:post_status!)
+    expect(SlackStatusBot::Listeners::AWSLambda.update!({}))
+      .to eq(expected)
+  end
+
   example 'Then it posts a status if all args are present', :unit do
     expected = {
       statusCode: 200,
@@ -127,6 +176,12 @@ describe 'Given a listener that sets ad-hoc status updates from AWS Lambda' do
     allow(SlackStatusBot::Listeners::AWSLambda)
       .to receive(:params)
       .and_return(@params)
+    allow(SlackStatusBot::Listeners::AWSLambda)
+      .to receive(:weekend?)
+      .and_return(false)
+    allow(SlackStatusBot::Listeners::AWSLambda)
+      .to receive(:currently_on_vacation?)
+      .and_return(false)
     expect(SlackStatusBot::Base::API)
       .to receive(:post_status!)
       .with('fake', ':emoji:', 123)
