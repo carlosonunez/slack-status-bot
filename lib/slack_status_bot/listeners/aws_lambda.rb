@@ -1,22 +1,29 @@
 # frozen_string_literal: true
 
 require 'chronic_duration'
+require 'slack_status_bot/base'
 
 module SlackStatusBot
   module Listeners
     # This is a listener for invocations of `status` made through AWS Lambda via API Gateway.
     class AWSLambda
+      extend SlackStatusBot::Base::Mixins
+
       # Post an update from AWS Lambda.
       def self.update!(event)
         params = params(event)
         missing = %w[status emoji].filter { |p| !params.key?(p.to_sym) }
-        if missing.length.positive?
-          error(event, message: "Please provide: #{missing.join(', ')}")
-        elsif SlackStatusBot::Base::API.post_status!(params[:status],
-                                                     params[:emoji],
-                                                     expiration(params[:expiration]))
+        return error(event, message: "Please provide: #{missing.join(', ')}") \
+          if missing.length.positive?
+        return error(event, message: 'status updates are disabled during weekends and holidays') \
+          if weekend? || currently_on_vacation?
+
+        begin
+          SlackStatusBot::Base::API.post_status!(params[:status],
+                                                 params[:emoji],
+                                                 expiration(params[:expiration]))
           ok(event)
-        else
+        rescue StandardError
           error(event, message: 'Update failed; check logs')
         end
       end

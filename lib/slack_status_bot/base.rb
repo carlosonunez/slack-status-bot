@@ -44,6 +44,16 @@ module SlackStatusBot
         expiration_time <= current_time
       end
 
+      # TODO: Move these into a utils class
+      def currently_on_vacation?
+        status = API.get_status
+        if status.nil? || status.empty? || !status.key?(:status_text)
+          SlackStatusBot.logger.warn("Can't determine vacation status")
+          return false
+        end
+        on_vacation(status[:status_text])
+      end
+
       def on_vacation?(status)
         status.match?(/^Out of office/)
       end
