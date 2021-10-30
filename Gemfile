@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'chronic'
 gem 'chronic_duration'
 gem 'dynamoid'
 gem 'google-api-client'

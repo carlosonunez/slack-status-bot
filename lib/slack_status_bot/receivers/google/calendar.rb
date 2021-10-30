@@ -10,7 +10,7 @@ module SlackStatusBot
       # This receiver generates statuses from events inside of a Google Calendar.
       # The calendars to monitor must be provided as an environment variable.
       class Calendar
-        attr_reader :credentials, :client, :name
+        attr_reader :credentials, :client, :name, :id
 
         # Retreives events from calendar configured in the environment.
         SCOPES = [
@@ -25,10 +25,11 @@ module SlackStatusBot
           @credentials = SlackStatusBot::Authenticators::Google.get_or_create_credentials!(SCOPES)
           @client = ::Google::Apis::CalendarV3::CalendarService.new
           @client.authorization = @credentials
+          @id ||= resolve_id
         end
 
         # Resolves the Calendar's name to an ID.
-        def id
+        def resolve_id
           calendars = @client.list_calendar_lists
                              .items.select! { |cal| cal.summary.downcase == @name.downcase }
           return nil if calendars.length.zero?
