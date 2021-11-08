@@ -52,7 +52,7 @@ end
 # See also: https://googleapis.dev/ruby/google-api-client/latest/Google/Apis/CalendarV3/EventDateTime.html
 def create_fake_google_dt(dt, all_day)
   g_dt = Google::Apis::CalendarV3::EventDateTime.new(
-    time_zone: "America/Chicago",
+    time_zone: 'America/Chicago',
     date_time: dt.rfc3339
   )
   g_dt.date = Date.parse(dt.to_s) if all_day
@@ -75,87 +75,78 @@ end
 # rubocop:disable Metrics/BlockLength
 describe 'Given a status receiver for Google Calendar' do
   before do
-    @scopes = [Google::Apis::CalendarV3::AUTH_CALENDAR_EVENTS_READONLY]
     Calendar ||= SlackStatusBot::Receivers::Google::Calendar
-    @creds = {
-      access_token: 'fake',
-      refresh_token: 'fake'
-    }
   end
-  context 'When we inspect our environment' do
+  context 'When we resolve the name of the calendar' do
     context 'And our environment is not configured' do
       example 'Then a failure is raised', :unit do
         ENV['GOOGLE_CALENDAR_NAME'] = nil
-        expect { Calendar.new }
+        expect { Calendar.new.name }
           .to raise_error('GOOGLE_CALENDAR_NAME is not defined in your environment')
       end
     end
+
+    context 'And our environment is configured' do
+      example 'Then the name of our calendar is resolved', :unit do
+        ENV['GOOGLE_CALENDAR_NAME'] = 'fake-calendar'
+        expect(Calendar.new.name).to eq 'fake-calendar'
+      end
+    end
   end
-  context 'When the name of a calendar is provided in the environment' do
+
+  context 'When we have a valid calendar' do
     before do
-      @fake_calendars = {
-        'fake-calendar': 'fake-id',
-        'fake-calendar-2': 'fake-id-we-dont-want',
-        'fake-calendar-3': 'fake-id-we-dont-want'
-      }.transform_keys(&:to_s)
       allow(Google::Apis::CalendarV3::CalendarService)
         .to receive(:new)
         .and_return(double(Google::Apis::CalendarV3::CalendarService,
-                           :authorization= => @creds,
-                           :list_calendar_lists => create_fake_cal_list(@fake_calendars)))
+                           list_calendar_lists: {
+                             'valid-calendar': 'fake-id',
+                             'invalid-calendar-2': 'fake-id-we-dont-want',
+                             'invalid-calendar-3': 'fake-id-we-dont-want'
+                           }.transform_keys(&:to_s)))
+      @calendar = double(Calendar)
     end
-    after do
-      ENV['GOOGLE_CALENDAR_NAME'] = nil
-    end
-    context 'And the calendar name matches a real calendar' do
-      example 'Then the matching Calendar object can be retrieved', :unit do
-        ENV['GOOGLE_CALENDAR_NAME'] = 'fake-calendar'
-        allow(SlackStatusBot::Authenticators::Google)
-          .to receive(:get_or_create_credentials!)
-          .and_return(@creds)
-        calendar = Calendar.new
-        expect(calendar.id).to eq 'fake-id'
+    context 'And the calendar name matches a calendar in our Google account' do
+      example 'Then we get the ID for that calendar', :unit do
+        allow(@calendar).to receive(:name).and_return('valid-calendar')
+        allow(@calendar).to receive(:id).and_call_original
+        expect(@calendar.id).to eq 'fake-id'
       end
     end
     context 'And the calendar name does not match a real calendar' do
       example 'Then the matching Calendar object is not retrieved', :unit do
-        ENV['GOOGLE_CALENDAR_NAME'] = 'invalid-name'
-        allow(SlackStatusBot::Authenticators::Google)
-          .to receive(:get_or_create_credentials!)
-          .and_return(@creds)
-        calendar = Calendar.new
-        expect(calendar.id).to be_nil
+        allow(@calendar).to receive(:name).and_return('missing-calendar')
+        expect(@calendar.id).to be_nil
       end
     end
   end
-  context "When we look for events in a calendar" do
+  context 'When we look for events in a calendar' do
     before do
       allow(SlackStatusBot::Authenticators::Google)
         .to receive(:get_or_create_credentials!)
         .and_return(@creds)
     end
-    example "Then we can get a summarized set of them", :unit do
+    example 'Then we can get a summarized set of them', :unit do
       ENV['GOOGLE_CALENDAR_NAME'] = 'fake-calendar'
       @events = create_fake_events([
-        FakeEvent.new(name: "regular-event-1",
-                      start_date: "2021/10/30 10:00",
-                      duration: "30 minutes"),
-        FakeEvent.new(name: "regular-event-2",
-                      start_date: "2021/10/30 14:30",
-                      duration: "20 minutes"),
-        FakeEvent.new(name: "all-day-event-1",
-                      start_date: "2021/10/30 10:00",
-                      duration: "30 minutes"),
-      ])
+                                     FakeEvent.new(name: 'regular-event-1',
+                                                   start_date: '2021/10/30 10:00',
+                                                   duration: '30 minutes'),
+                                     FakeEvent.new(name: 'regular-event-2',
+                                                   start_date: '2021/10/30 14:30',
+                                                   duration: '20 minutes'),
+                                     FakeEvent.new(name: 'all-day-event-1',
+                                                   start_date: '2021/10/30 10:00',
+                                                   duration: '30 minutes')
+                                   ])
       allow(Google::Apis::CalendarV3::CalendarService)
         .to receive(:new)
         .and_return(double(Google::Apis::CalendarV3::CalendarService,
                            :authorization= => @creds,
-                           :list_events => @events,
-                           :list_calendar_lists => OpenStruct.new(items: {})))
+                           :list_events => @events))
       expected = @events.map do |gcal_event|
         all_day = false if gcal_event.start.date.nil? &&
-          gcal_event.end.date.nil?
+                           gcal_event.end.date.nil?
         {
           name: gcal_event.summary,
           start: gcal_event.start,
@@ -164,6 +155,7 @@ describe 'Given a status receiver for Google Calendar' do
         }
       end
       calendar = Calendar.new
+      allow(calendar).to receive(:resolve_id).and_return('fake_id')
       expect(JSON.parse(calendar.events)).to eq(JSON.parse(expected))
     end
   end

@@ -7,6 +7,9 @@ require 'slack_status_bot'
 require_relative 'helpers/test_mocks'
 
 RSpec.configure do |config|
+  config.mock_with(:rspec) do |mocks|
+    mocks.verify_partial_doubles = true
+  end
   config.before(:suite, unit: true) do
     SpecHelpers::Testdata.wait_for_local_dynamodb_or_fail!
     SpecHelpers::Testdata.clear!
