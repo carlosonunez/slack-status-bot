@@ -35,10 +35,10 @@ end
 
 describe 'Given a helper class that retrieves or generates Google OAuth tokens' do
   before(:all) do
+    ENV['DYNAMODB_LOCAL'] = 'true'
     GoogleAuthenticator = SlackStatusBot::Authenticators::Google
     Credentials = SlackStatusBot::Models::Google::Credentials
-    ENV['DYNAMODB_LOCAL'] = 'true'
-    GoogleAuthenticator.init_tokens_database!
+    GoogleAuthenticator.initialize_persistence!
   end
   context 'When we validate our environment' do
     example 'It validates correct client JSON', :unit do
@@ -56,13 +56,6 @@ describe 'Given a helper class that retrieves or generates Google OAuth tokens' 
       expect(GoogleAuthenticator.credentials.access_token).to eq 'fake-access-token'
       expect(GoogleAuthenticator.credentials.refresh_token).to eq 'fake-refresh-token'
     end
-    example 'We can update a stored access token when needed', :unit do
-      allow(GoogleAuthenticator).to receive(:client_id).and_return('fake-client-id')
-
-      GoogleAuthenticator.update_access_token!(access_token: 'updated-access-token')
-      creds = Credentials.find(TestCredentials.client_id)
-      expect(creds.access_token).to eq 'updated-access-token'
-    end
   end
 
   context 'When a client asks for a new set of tokens' do
@@ -77,15 +70,18 @@ describe 'Given a helper class that retrieves or generates Google OAuth tokens' 
       allow(Google::Auth::UserAuthorizer)
         .to receive(:new)
         .and_return(fauxthorizer)
+      allow(GoogleAuthenticator)
+        .to receive(:credentials)
+        .and_return(TestCredentials)
       allow($stdin).to receive(:gets).and_return('12345')
       expected = <<~MESSAGE
         ==> Visit this URL to complete authentication: https://example.net/12345
         ==> Then enter the code that you received here:#{' '}
       MESSAGE
-      expect { GoogleAuthenticator.generate_tokens_or_raise!('fake-scope') }
+      expect { GoogleAuthenticator.authenticate!(oauth_scopes: 'fake-scope') }
         .to output(expected.chop)
         .to_stdout
-      creds = GoogleAuthenticator.generate_tokens_or_raise!('fake-scope')
+      creds = GoogleAuthenticator.authenticate!(oauth_scopes: 'fake-scope')
       expect(creds.access_token).to eq 'fake-token'
       expect(creds.refresh_token).to eq 'fake-refresh'
     end
@@ -93,10 +89,12 @@ describe 'Given a helper class that retrieves or generates Google OAuth tokens' 
 
   context 'When we attempt to authenticate an OAuth client' do
     context 'And this client does not have any pre-existing credentials' do
+      before do
+        allow(GoogleAuthenticator).to receive(:credentials).and_return(nil)
+      end
       context 'And we have not explicitly said we want to authenticate' do
         example 'Then fail and tell the user that they need to auth', :unit do
-          allow(GoogleAuthenticator).to receive(:credentials).and_return(nil)
-          expect { GoogleAuthenticator.authenticate! }
+          expect { GoogleAuthenticator.authenticate!(oauth_scopes: nil) }
             .to raise_error(<<~EXCEPTION
               You need to authenticate first. Use the \
               --authenticate-google-apis command line switch \
@@ -104,15 +102,18 @@ describe 'Given a helper class that retrieves or generates Google OAuth tokens' 
             EXCEPTION
                            )
         end
-        context 'And we have explicitly said we want to authenticate' do
-          example 'Then the offline authentication flow should begin', :unit do
-            allow(GoogleAuthenticator).to receive(:credentials).and_return(nil)
-            allow(GoogleAuthenticator).to receive(:generate_tokens_or_raise!).and_return({})
-            allow(GoogleAuthenticator).to receive(:persist_tokens_or_raise!).and_return(true)
-            expect(GoogleAuthenticator).to receive(:generate_tokens_or_raise!)
-            expect { GoogleAuthenticator.authenticate!(auth_if_creds_missing: true) }
-              .not_to raise_error
+      end
+      context 'And we have explicitly said we want to authenticate' do
+        example 'Then the offline authentication flow should begin', :unit do
+          allow(GoogleAuthenticator)
+            .to receive(:generate_tokens_or_raise!)
+            .with('fake-scopes', 'default')
+            .and_return({})
+          expect do
+            GoogleAuthenticator.authenticate!(oauth_scopes: 'fake-scopes',
+                                              auth_if_creds_missing: true)
           end
+            .not_to raise_error
         end
       end
     end
