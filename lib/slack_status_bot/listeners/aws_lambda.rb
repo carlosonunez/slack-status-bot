@@ -15,7 +15,7 @@ module SlackStatusBot
         missing = %w[status emoji].filter { |p| !params.key?(p.to_sym) }
         return error(event, message: "Please provide: #{missing.join(', ')}") \
           if missing.length.positive?
-        return error(event, message: 'status updates are disabled during weekends and holidays') \
+        return error(event, message: 'status updates are disabled during weekends, holidays, and vacations') \
           if weekend? || currently_on_vacation?
 
         begin

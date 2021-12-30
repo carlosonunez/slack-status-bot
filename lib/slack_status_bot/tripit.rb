@@ -10,7 +10,7 @@ module SlackStatusBot
         generate_status_from_trip(trip) do |status, emoji|
           return post_default_status!(ignore_status_expiration: ignore_status_expiration) if status.nil?
 
-          if limited_availability? && !weekend?
+          if limited_availability? && !weekend? && !on_vacation?(status)
             status += ' (unavailable)'
             emoji = ':sleeping:'
           end
