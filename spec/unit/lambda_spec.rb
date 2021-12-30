@@ -122,7 +122,7 @@ describe 'Given a listener that sets ad-hoc status updates from AWS Lambda' do
       },
       body: {
         status: 'error',
-        message: 'status updates are disabled during weekends and holidays'
+        message: 'status updates are disabled during weekends, holidays, and vacations'
       }.to_json
     }
     allow(SlackStatusBot::Listeners::AWSLambda)
@@ -145,7 +145,7 @@ describe 'Given a listener that sets ad-hoc status updates from AWS Lambda' do
       },
       body: {
         status: 'error',
-        message: 'status updates are disabled during weekends and holidays'
+        message: 'status updates are disabled during weekends, holidays, and vacations'
       }.to_json
     }
     allow(SlackStatusBot::Listeners::AWSLambda)
