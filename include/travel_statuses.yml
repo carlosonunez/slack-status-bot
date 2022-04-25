@@ -48,3 +48,10 @@
   not_flying:
     status: "At the \"<%= conf_name(trip_name) %>\" conference until <%= conf_return_date(trip_name) %>"
     emoji: ":stadium:"
+- status_regexp: "^<%= employer %>: .* (o|O)ffsite until .*"
+  flying:
+    status: "[<%= flight_info %>] Team offsite until <%= team_offsite_return_date(trip_name) %>"
+    emoji: ":airplane:"
+  not_flying:
+    status: "Team offsite until <%= team_offsite_return_date(trip_name) %>"
+    emoji: ":briefcase:"
