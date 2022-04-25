@@ -40,6 +40,10 @@ module SlackStatusBot
       trip.gsub(/^.*Conference: .* until (.*)$/, '\1')
     end
 
+    def self.team_offsite_return_date(trip)
+      trip.gsub(/^.*(o|O)ffsite until (.*)$/, '\2')
+    end
+
     def self.conf_name(trip)
       trip.gsub(/^.*Conference: (.*) until.*$/, '\1')
     end
