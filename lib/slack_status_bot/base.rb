@@ -25,8 +25,13 @@ module SlackStatusBot
           SlackStatusBot.logger.warn 'Current status has not expired; leaving it alone'
           return false
         end
-        status = ENV['SLACK_API_DEFAULT_STATUS']
-        emoji = ENV['SLACK_API_DEFAULT_STATUS_EMOJI']
+        if limited_availability?
+          status = ENV['SLACK_API_DEFAULT_STATUS_LIMITED']
+          emoji = ENV['SLACK_API_DEFAULT_STATUS_EMOJI_LIMITED']
+        else
+          status = ENV['SLACK_API_DEFAULT_STATUS']
+          emoji = ENV['SLACK_API_DEFAULT_STATUS_EMOJI']
+        end
         if weekend? && !on_vacation?(status)
           status = 'Yay, weekend!'
           emoji = ':sunglasses:'
@@ -69,7 +74,9 @@ module SlackStatusBot
         current_hour = Time.now.hour # TODO: Get my current time zone from TripIt
         start_hour_of_working_day = 9
         end_hour_of_working_day = 17
-        current_hour < start_hour_of_working_day || current_hour >= end_hour_of_working_day
+        result = current_hour < start_hour_of_working_day || current_hour >= end_hour_of_working_day
+        SlackStatusBot.logger.debug "Current hour: #{current_hour}, Limited? #{result}"
+        result
       end
     end
 
