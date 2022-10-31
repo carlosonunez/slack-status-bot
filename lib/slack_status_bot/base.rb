@@ -26,7 +26,7 @@ module SlackStatusBot
           return false
         end
         if limited_availability?
-          SlackStatusBot.logger.info "Availability limited. Current time is #{Time.now}. Timezone is #{ENV['TZ']}"
+          SlackStatusBot.logger.info "Availability limited. Current time is #{Time.now}."
           status = ENV['SLACK_API_DEFAULT_STATUS_LIMITED']
           emoji = ENV['SLACK_API_DEFAULT_STATUS_EMOJI_LIMITED']
         else
