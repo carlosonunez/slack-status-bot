@@ -96,7 +96,7 @@ module SlackStatusBot
         response[:data] || response['data']
       end
 
-      def self.post_status!(status, emoji, expiration = 0)
+      def self.post_status!(status = "Hello, world", emoji, expiration = 0)
         SlackStatusBot.logger.info "Shipping status: #{emoji} #{status}"
         uri = [ENV['SLACK_API_URL'], 'status'].join('/')
         params = ["text=#{status.encode('ASCII')}", "emoji=#{emoji.encode('ASCII')}"].join('&')
