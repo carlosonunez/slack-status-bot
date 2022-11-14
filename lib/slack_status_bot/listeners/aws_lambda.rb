@@ -97,6 +97,7 @@ module SlackStatusBot
       end
 
       def self.parse_expiration_time(time_string)
+        return 0 if time_string.nil?
         return time_string.to_i unless time_string.match?(/(\d+)(\w)/)
 
         duration = 0

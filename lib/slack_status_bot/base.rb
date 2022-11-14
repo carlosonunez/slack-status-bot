@@ -61,6 +61,7 @@ module SlackStatusBot
       end
 
       def on_vacation?(status)
+        return false if status.nil?
         status.match?(/^Out of office/)
       end
 
