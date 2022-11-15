@@ -33,7 +33,6 @@ services:
       - AWS_REGION
     volumes:
       - $PWD:/app
-      - $PWD/.terraform:/tmp
     working_dir: /app
     entrypoint: 
       - ./scripts/execute_terraform.sh
