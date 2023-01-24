@@ -55,3 +55,10 @@
   not_flying:
     status: "Team offsite until <%= team_offsite_return_date(trip_name) %>"
     emoji: ":briefcase:"
+- status_regexp: "^<%= employer %>: (.*) Burst Week until .*"
+  flying:
+    status: "[<%= flight_info %>] Burst Week until <%= burst_week_return_date(trip_name) %>"
+    emoji: ":airplane:"
+  not_flying:
+    status: "Burst Week at <%= current_city %> until <%= burst_week_return_date(trip_name) %>"
+    emoji: "<%= city_emoji %>"
