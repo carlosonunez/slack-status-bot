@@ -44,6 +44,10 @@ module SlackStatusBot
       trip.gsub(/^.*(o|O)ffsite until (.*)$/, '\2')
     end
 
+    def self.burst_week_return_date(trip)
+      trip.gsub(/^.*Burst Week until (.*)$/, '\2')
+    end
+
     def self.conf_name(trip)
       trip.gsub(/^.*Conference: (.*) until.*$/, '\1')
     end
