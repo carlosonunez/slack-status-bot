@@ -78,7 +78,7 @@ module SlackStatusBot
 
     def self.client(trip_name)
       SlackStatusBot.logger.debug("Trip name: [#{trip_name}]")
-      trip_name.gsub(/- Remote$/, '').gsub(/^\w+:(.*)- (Week.*)$/, '\1').strip
+      trip_name.gsub(/- Remote$/, '').gsub(/^\w+:(.*)/, '\1').strip
     end
 
     def self.generate_status_from_trip(trip)
