@@ -5,7 +5,7 @@ plugins:
   - serverless-domain-manager
 
 service: status-listeners
-frameworkVersion: '2.43.1'
+frameworkVersion: '2.25.2'
 
 provider:
   name: aws
