@@ -32,7 +32,9 @@ jobs:
         run: docker-compose -f docker-compose.ci.yml run --rm decrypt-env
         env:
           ENV_PASSWORD: ${{ secrets.env_file_encryption_key }}
+          ENV_FILE_NAME: .env.redhat
       - name: Deploy serverless functions
         run: scripts/deploy
         env:
           ENVIRONMENT: production
+          ENV_FILE: .env.redhat
