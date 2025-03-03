@@ -16,6 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - uses: KengoTODA/actions-setup-docker-compose@main
+        name: Set up Docker Compose
+        with:
+          version: '2.23.3'
       - name: Decrypt environment file
         run: docker-compose -f docker-compose.ci.yml run --rm decrypt-env
         env:
@@ -28,6 +32,10 @@ jobs:
       - unit-tests
     steps:
       - uses: actions/checkout@v1
+      - uses: KengoTODA/actions-setup-docker-compose@main
+        name: Set up Docker Compose
+        with:
+          version: '2.23.3'
       - name: Decrypt environment file
         run: docker-compose -f docker-compose.ci.yml run --rm decrypt-env
         env:
