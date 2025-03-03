@@ -24,13 +24,17 @@ module SlackStatusBot
     SlackStatusBot.logger.debug("Enabled integrations: #{ENABLED_INTEGRATIONS}")
     ENABLED_INTEGRATIONS.split(',').each do |integration|
       SlackStatusBot.logger.info("Updating integration: #{integration}")
-      status_updated =
+      status_updated, error_message =
         SlackStatusBot.const_get(integration).update!(ignore_status_expiration: ignore_status_expiration)
-      failed_updates.append(integration) unless status_updated
+      error_message = "No error message generated" if error_message.nil? or error_message.empty?
+      failed_updates.append({
+        integration: integration,
+        error_message: error_messsage
+      }) unless status_updated
     end
     return if failed_updates.empty?
 
-    raise "One or more integrations failed to update: #{failed_updates}. See logs for more."
+    raise "One or more integrations failed to update: #{JSON.generate(failed_updates)}. See logs for more."
   end
 end
 

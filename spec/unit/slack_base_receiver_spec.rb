@@ -61,7 +61,7 @@ describe "Given a library that send statuses to Carlos's Slack Bot Thing" do
         expect(SlackStatusBot::Base::API)
           .not_to receive(:post_status!)
         expect(post_new_status!(status: @fake_status, emoji: @fake_emoji))
-          .to eq(false)
+          .to eq([false, "Current status has not expired yet"])
       end
     end
     context 'And we are ignoring its expiration time' do

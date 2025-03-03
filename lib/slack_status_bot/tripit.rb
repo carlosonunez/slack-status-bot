@@ -18,6 +18,8 @@ module SlackStatusBot
                                   emoji: emoji,
                                   ignore_status_expiration: ignore_status_expiration)
         end
+      rescue StandardError => e
+        return false, e
       end
       SlackStatusBot.logger.warn 'No trip found. Posting default status.'
       post_default_status!(ignore_status_expiration: ignore_status_expiration)
@@ -116,8 +118,7 @@ module SlackStatusBot
                                 'x-api-key': ENV['TRIPIT_API_KEY']
                               })
       if response.code.to_i != 200
-        SlackStatusBot.logger.error("Failed to get current trip: #{response.body}")
-        return nil
+        raise "Failed to get current trip: #{response.body}"
       end
       trip = JSON.parse(response.body, symbolize_names: true)[:trip]
       SlackStatusBot.logger.debug("Current trip: #{trip}")

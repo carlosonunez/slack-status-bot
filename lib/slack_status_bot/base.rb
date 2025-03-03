@@ -8,8 +8,7 @@ module SlackStatusBot
     module Mixins
       def post_new_status!(status:, emoji: nil, ignore_status_expiration: false)
         if !status_expiration_stale? && !ignore_status_expiration
-          SlackStatusBot.logger.warn 'Current status has not expired; leaving it alone'
-          return false
+          return false, "Current status has not expired yet"
         end
 
         if weekend? && !on_vacation?(status)
@@ -17,13 +16,16 @@ module SlackStatusBot
           emoji = ':sunglasses:'
           SlackStatusBot.logger.info 'About to yield cuz weekend'
         end
-        API.post_status!(status, emoji)
+        begin
+          API.post_status!(status, emoji)
+        rescue StandardError => e
+          return false, e
+        end
       end
 
       def post_default_status!(ignore_status_expiration: false)
         if !status_expiration_stale? && !ignore_status_expiration
-          SlackStatusBot.logger.warn 'Current status has not expired; leaving it alone'
-          return false
+          return false, "Current status has not expired yet"
         end
         if limited_availability?
           SlackStatusBot.logger.info "Availability limited. Current time is #{Time.now}."
@@ -38,7 +40,11 @@ module SlackStatusBot
           emoji = ':sunglasses:'
           SlackStatusBot.logger.info 'About to yield cuz weekend'
         end
-        API.post_status!(status, emoji)
+        begin
+          API.post_status!(status, emoji)
+        rescue StandardError => e
+          return false, e
+        end
       end
 
       def status_expiration_stale?
