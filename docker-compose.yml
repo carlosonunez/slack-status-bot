@@ -64,4 +64,4 @@ services:
       - ENVIRONMENT=test
       - LOAD_PATH="/app/lib"
       - LOG_LEVEL
-    env_file: .env
+    env_file: ${ENV_FILE:-.env}
