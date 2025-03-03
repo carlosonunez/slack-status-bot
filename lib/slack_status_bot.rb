@@ -28,8 +28,8 @@ module SlackStatusBot
         SlackStatusBot.const_get(integration).update!(ignore_status_expiration: ignore_status_expiration)
       error_message = "No error message generated" if error_message.nil? or error_message.empty?
       failed_updates.append({
-        integration: integration,
-        error_message: error_messsage
+        integration => integration,
+        error_message => error_messsage
       }) unless status_updated
     end
     return if failed_updates.empty?
