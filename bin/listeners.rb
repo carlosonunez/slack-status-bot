@@ -9,7 +9,7 @@ rescue StandardError => e
   SlackStatusBot::Listeners::AWSLambda.error(
     event,
     message: e,
-    http_code: 500,
+    http_code: 400,
     additional_json: {
       details: e.backtrace
     }
@@ -28,6 +28,6 @@ rescue StandardError => e
   SlackStatusBot::Listeners::AWSLambda.error(
     event,
     message: e,
-    http_code: 500
+    http_code: 400
   )
 end

@@ -23,8 +23,8 @@ module SlackStatusBot
                                                  params[:emoji],
                                                  expiration(params[:expiration]))
           ok(event)
-        rescue StandardError
-          error(event, message: 'Update failed; check logs')
+        rescue StandardError => e
+          error(event, message: "Update failed: #{e}")
         end
       end
 

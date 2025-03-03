@@ -91,8 +91,7 @@ module SlackStatusBot
         Response code from Slack: #{response.code}, Body: #{response.body}
         MESSAGE
         if response.code != 200
-          SlackStatusBot.logger.error "Unable to retrieve status update: #{response.body}"
-          return {}
+          raise "Unable to retrieve status update: #{response.body}"
         end
         response[:data] || response['data']
       end
@@ -113,8 +112,7 @@ module SlackStatusBot
         Response code from Slack: #{response.code}, Body: #{response.body}
         MESSAGE
         if response.code != 200
-          SlackStatusBot.logger.error "Unable to post status update: #{response.body}"
-          return false
+          raise "Unable to post status update: #{response.body}"
         end
         true
       end
