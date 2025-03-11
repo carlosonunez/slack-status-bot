@@ -94,7 +94,11 @@ module SlackStatusBot
       else
         trip_name.gsub(/- Remote$/, '').gsub(/^\w+:(.*)/, '\1').strip
       end
-      trip_name.gsub(/\[.*\]/, '').gsub(/ {2,}/, ' ').gsub(/(.*) until.*/, '\1').strip
+      trip_name.gsub("#{SlackStatusBot::EMPLOYER}: ", '')
+               .gsub(/\[.*\]/, '')
+               .gsub(/ {2,}/, ' ')
+               .gsub(/(.*) until.*/, '\1')
+               .strip
     end
 
     def self.generate_status_from_trip(trip)
