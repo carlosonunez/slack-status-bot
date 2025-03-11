@@ -1,6 +1,7 @@
 require 'erb'
 require 'httparty'
 require 'json'
+require 'yaml'
 
 module SlackStatusBot
   module TripIt
@@ -32,6 +33,10 @@ module SlackStatusBot
 
     def self.ooo_return_date(trip)
       trip.gsub(/^Vacation: .* until (.*)$/, '\1')
+    end
+
+    def self.training_return_date(trip)
+      trip.gsub(/^.*\[training\].* until (.*)$/, '\1')
     end
 
     def self.beach_return_date(trip)
@@ -71,10 +76,14 @@ module SlackStatusBot
           template_variables.local_variable_set(:employer, ENV['TRIPIT_WORK_COMPANY_NAME'])
           regexp = ERB.new(status_info[:status_regexp]).result(template_variables)
           SlackStatusBot.logger.debug("Trip: [#{trip_name}], Regexp: [#{regexp}]")
-          Regexp.new(regexp).match? trip_name
+          if Regexp.new(regexp).match? trip_name
+            SlackStatusBot.logger.debug("It's a match!: #{trip_name}")
+            true
+          end
         end.first
       return nil if found_status.nil? || found_status.empty?
 
+      SlackStatusBot.logger.debug("Found status: #{found_status}")
       found_status
     end
 
@@ -85,6 +94,7 @@ module SlackStatusBot
       else
         trip_name.gsub(/- Remote$/, '').gsub(/^\w+:(.*)/, '\1').strip
       end
+      trip_name.gsub(/\[.*\]/, '').gsub(/ {2,}/, ' ').gsub(/(.*) until.*/, '\1').strip
     end
 
     def self.generate_status_from_trip(trip)
@@ -117,12 +127,11 @@ module SlackStatusBot
       response = HTTParty.get(uri, headers: {
                                 'x-api-key': ENV['TRIPIT_API_KEY']
                               })
-      if response.code.to_i != 200
-        raise "Failed to get current trip: #{response.body}"
-      end
+      raise "Failed to get current trip: #{response.body}" if response.code.to_i != 200
+
       trip = JSON.parse(response.body, symbolize_names: true)[:trip]
       SlackStatusBot.logger.debug("Current trip: #{trip}")
-      return nil if trip.empty?
+      return nil if trip.nil? || trip.empty?
 
       yield trip
     end

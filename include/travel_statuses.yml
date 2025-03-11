@@ -55,17 +55,25 @@
   not_flying:
     status: "Burst Week at <%= current_city %> until <%= burst_week_return_date(trip_name) %>"
     emoji: "<%= city_emoji %>"
+- status_regexp: "^<%= employer %>: \\[dark\\] .*$"
+  flying:
+    status: "<%= client(trip_name) %>: <%= flight_info %>"
+    emoji: ":airplane:"
+  not_flying:
+    status: "<%= client(trip_name) %> @ <%= current_city %> (will be offline at times; expect delays)"
+    emoji: "<%= city_emoji %>"
+- status_regexp: "^<%= employer %>: \\[training\\] .*$"
+  flying:
+    status: "<%= client(trip_name) %>: <%= flight_info %>"
+    emoji: ":airplane:"
+  not_flying:
+    status: "<%= client(trip_name) %> (all day training until <%= training_return_date(trip_name) %>)"
+    emoji: ":no_entry:"
+# Employer catch-all; this should be last.
 - status_regexp: "^<%= employer %>:.*$"
   flying:
     status: "<%= client(trip_name) %>: <%= flight_info %>"
     emoji: ":airplane:"
   not_flying:
     status: "<%= client(trip_name) %> @ <%= current_city %>"
-    emoji: "<%= city_emoji %>"
-- status_regexp: "^<%= employer %>: [dark] .*$"
-  flying:
-    status: "<%= client(trip_name) %>: <%= flight_info %>"
-    emoji: ":airplane:"
-  not_flying:
-    status: "<%= client(trip_name) %> @ <%= current_city %> (will be offline at times; expect delays)"
     emoji: "<%= city_emoji %>"
