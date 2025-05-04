@@ -58,10 +58,10 @@ services:
   update_status:
     extends: ruby
     entrypoint:
-      - ruby
-      - bin/update.rb
+      - bash
+      - /scripts/scheduled_status_update.sh
     environment:
       - ENVIRONMENT=test
       - LOAD_PATH="/app/lib"
       - LOG_LEVEL
-    env_file: ${ENV_FILE:-.env}
+      - ENV_FILE=${ENV_FILE:-.env}

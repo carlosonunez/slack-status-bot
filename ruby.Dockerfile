@@ -1,4 +1,4 @@
-FROM ruby:2.7-alpine
+FROM ruby:3.2-alpine
 MAINTAINER Carlos Nunez <dev@carlosnunez.me>
 ARG ENVIRONMENT
 
