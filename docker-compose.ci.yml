@@ -8,7 +8,7 @@ services:
   encrypt-env:
     extends: gpg
     environment:
-      ENV_FILE: ".env"
+      ENV_FILE: ${ENV_FILE:-.env}
     entrypoint: ["sh"]
     command:
       - -c
@@ -19,6 +19,7 @@ services:
           >&2 echo "ERROR: File not found: /app/$$fp"
           exit 1
         fi
+        >&2 echo "INFO: Encrypting environment: $$ENV_FILE"
         fp_nodot="$(echo "$$fp" | sed 's/^.//')"
         enc_fp="$${fp_nodot}.gpg"
         gpg --batch --yes --passphrase="$ENV_PASSWORD" \
@@ -26,7 +27,7 @@ services:
   decrypt-env:
     extends: gpg
     environment:
-      ENV_FILE: ".env"
+      ENV_FILE: ${ENV_FILE:-.env}
     entrypoint: ["sh"]
     command:
       - -c
