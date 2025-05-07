@@ -1,4 +1,6 @@
 version: '2.2'
+volumes:
+  update_status_storage_vol: {}
 services:
   ruby:
     build:
@@ -57,10 +59,13 @@ services:
       - documentation
   update_status:
     extends: ruby
+    volumes:
+      - update_status_storage_vol:/data
     entrypoint:
       - bash
       - /scripts/scheduled_status_update.sh
     environment:
+      - UPDATE_STATUS_STORAGE_DIR=/data
       - ENVIRONMENT=test
       - LOAD_PATH="/app/lib"
       - LOG_LEVEL

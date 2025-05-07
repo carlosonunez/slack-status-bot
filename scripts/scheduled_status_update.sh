@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-TOPLEVEL="$(realpath "$(dirname "$0")/..")"
 DEFAULT_ENV_FILE="${TOPLEVEL}/.env"
+DEFAULT_UPDATE_STATUS_STORAGE_DIR=/tmp
+TOPLEVEL="$(realpath "$(dirname "$0")/..")"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
+UPDATE_STATUS_STORAGE_DIR="${UPDATE_STATUS_STORAGE_DIR:-$DEFAULT_UPDATE_STATUS_STORAGE_DIR}"
 
 usage() {
   cat <<-EOF
@@ -14,18 +16,21 @@ OPTIONS
 
 ENVIRONMENT VARIABLES
 
-  ENV_FILE          An environment dotfile to use for configuration.
-                    (Default: $DEFAULT_ENV_FILE)
+  UPDATE_STATUS_STORAGE_DIR   Directory to store temporary files used by this script.
+                              (Default: $DEFAULT_UPDATE_STATUS_STORAGE_DIR)
 
-  SMTP_SERVER       SMTP server to use for sending email notifications.
+  ENV_FILE                    An environment dotfile to use for configuration.
+                              (Default: $DEFAULT_ENV_FILE)
+
+  SMTP_SERVER                 SMTP server to use for sending email notifications.
   
-  SMTP_USERNAME     Username to log into the SMTP server with.
+  SMTP_USERNAME               Username to log into the SMTP server with.
 
-  SMTP_PASSWORD     Password to log into the SMTP server with.
+  SMTP_PASSWORD               Password to log into the SMTP server with.
 
-  SMTP_EMAIL_FROM   The email address failure emails should be sent from.
+  SMTP_EMAIL_FROM             The email address failure emails should be sent from.
 
-  SMTP_EMAIL_TO     The email address to send failure emails to.
+  SMTP_EMAIL_TO               The email address to send failure emails to.
 
 NOTE
 
@@ -49,6 +54,61 @@ _log() {
     continued=1
   done <<< "$message"
 }
+
+_send_email() {
+  for var in SERVER USERNAME PASSWORD EMAIL_FROM EMAIL_TO
+  do
+    k="SMTP_$var"
+    if test -z "${!k}"
+    then
+      warn "failure email not sent because $k is not defined"
+      return 1
+    fi
+  done
+  local body subject
+  subject="$1"
+  body="$2"
+  envelope="$(cat <<-EOF
+From: $SMTP_EMAIL_FROM
+To: $SMTP_EMAIL_TO
+Subject: "$subject"
+
+$body
+EOF
+)"
+  info "Sending email to $SMTP_EMAIL_TO: $subject"
+  curl -u "${SMTP_USERNAME}:${SMTP_PASSWORD}" \
+    "smtps://${SMTP_SERVER}:465" \
+    --mail-from "$SMTP_EMAIL_FROM" \
+    --mail-rcpt "$SMTP_EMAIL_TO" \
+    --upload-file <(echo "$envelope")
+}
+
+_environment() {
+  basename "$ENV_FILE"
+}
+
+_custom_status_file() {
+  printf "%s/.custom_status_sentinel_%s" \
+    "$UPDATE_STATUS_STORAGE_DIR" \
+    "$(base64 -w 0 <<< "$(_environment)_$(hostname)")"
+}
+
+_set_custom_status_sentinel() {
+  info "Setting custom status sentinel"
+  date +%s > "$(_custom_status_file)"
+}
+
+_delete_custom_status_sentinel() {
+  rm "$(_custom_status_file)"
+}
+
+_custom_status_sentinel_expired() {
+  then=$(cat "$(_custom_status_file)")
+  now=$(date +%s)
+  test "$now" -gt "$then"
+}
+
 
 error() {
   _log "error" "$1"
@@ -76,23 +136,9 @@ ensure_prerequisites_met_or_exit() {
   exit 1
 }
 
-send_failure_email() {
-  for var in SERVER USERNAME PASSWORD EMAIL_FROM EMAIL_TO
-  do
-    k="SMTP_$var"
-    if test -z "${!k}"
-    then
-      warn "failure email not sent because $k is not defined"
-      return 1
-    fi
-  done
-  local result
-  result="$1"
-  body=$(cat <<-EOF
-From: $SMTP_EMAIL_FROM
-To: $SMTP_EMAIL_TO
-Subject: [ALERT] Status update failed :(
 
+send_failure_email() {
+  _send_email '[ALERT] STatus update failed :(' "$(cat <<-EOF
 A scheduled status update failed.
 
 Time: "$(date -Iseconds)"
@@ -102,12 +148,30 @@ What happened:
 
 $result
 EOF
-)
-  curl -u "${SMTP_USERNAME}:${SMTP_PASSWORD}" \
-    "smtps://${SMTP_SERVER}:465" \
-    --mail-from "$SMTP_EMAIL_FROM" \
-    --mail-rcpt "$SMTP_EMAIL_TO" \
-    --upload-file <(echo "$body")
+)"
+}
+
+custom_status_set() {
+  local result
+  result="$1"
+  grep -q "Current status has not expired yet" <<< "$result"
+}
+
+send_custom_status_email() {
+  if ! test -f "$(_custom_status_file)" || _custom_status_sentinel_expired
+  then
+    _send_email '[WARN] Custom status active' "$(cat <<-EOF
+Environment: $(_environment)
+
+A custom status is currently set. This alert will be sent every hour during
+which the status is set.
+EOF
+)"
+    if test -f "$(_custom_status_file)"
+    then info "Custom status sentinel set; set to expire on $(cat _custom_status_file)"
+    else _set_custom_status_sentinel
+    fi
+  fi
 }
 
 run_update() {
@@ -136,7 +200,14 @@ info "Using environment: $ENV_FILE"
 if result=$(run_update)
 then
   info "Status update was successful"
+  test -f "$(_custom_status_file)" && _delete_custom_status_sentinel
   exit 0
+fi
+if custom_status_set "$result"
+then
+  warn "Custom status set"
+  send_custom_status_email
+  exit 1
 fi
 error "Status update was not successful: $result"
 send_failure_email "$result"
