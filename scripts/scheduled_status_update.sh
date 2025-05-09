@@ -138,7 +138,7 @@ ensure_prerequisites_met_or_exit() {
 
 
 send_failure_email() {
-  _send_email '[ALERT] STatus update failed :(' "$(cat <<-EOF
+  _send_email '[ALERT] Status update failed :(' "$(cat <<-EOF
 A scheduled status update failed.
 
 Time: "$(date -Iseconds)"
