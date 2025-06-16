@@ -93,7 +93,7 @@ _environment() {
 _custom_status_file() {
   printf "%s/.custom_status_sentinel_%s" \
     "$UPDATE_STATUS_STORAGE_DIR" \
-    "$(base64 -w 0 <<< "$(_environment)_$(hostname)")"
+    "$(base64 -w 0 <<< "$(_environment)")"
 }
 
 _set_custom_status_sentinel() {
