@@ -98,7 +98,9 @@ _custom_status_file() {
 
 _set_custom_status_sentinel() {
   info "Setting custom status sentinel"
-  date +%s > "$(_custom_status_file)"
+  now=$(date +%s)
+  one_hour_in_seconds=3600
+  echo "$one_hour_in_seconds + $now" | bc > "$(_custom_status_file)"
 }
 
 _delete_custom_status_sentinel() {
@@ -106,9 +108,10 @@ _delete_custom_status_sentinel() {
 }
 
 _custom_status_sentinel_expired() {
-  then=$(cat "$(_custom_status_file)")
+  expiry=$(cat "$(_custom_status_file)")
   now=$(date +%s)
-  test "$now" -gt "$then"
+  debug "expiry: $expiry; now: $now; expired? $(test "$now" -gt "$expiry"; echo $?)"
+  test "$now" -gt "$expiry"
 }
 
 
@@ -125,7 +128,7 @@ info() {
 }
 
 debug() {
-  log "debug" "$1"
+  _log "debug" "$1"
 }
 
 ensure_running_in_container_or_exit() {
