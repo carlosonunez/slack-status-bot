@@ -4,6 +4,7 @@ DEFAULT_UPDATE_STATUS_STORAGE_DIR=/tmp
 TOPLEVEL="$(realpath "$(dirname "$0")/..")"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
 UPDATE_STATUS_STORAGE_DIR="${UPDATE_STATUS_STORAGE_DIR:-$DEFAULT_UPDATE_STATUS_STORAGE_DIR}"
+LOG_LEVEL="${LOG_LEVEL:-info}"
 
 usage() {
   cat <<-EOF
@@ -32,6 +33,7 @@ ENVIRONMENT VARIABLES
 
   SMTP_EMAIL_TO               The email address to send failure emails to.
 
+  LOG_LEVEL                   Logging verbosity for the app.
 NOTE
 
   - All environment variables supported by Slack Status Bot are also
@@ -122,6 +124,10 @@ info() {
   _log "info" "$1"
 }
 
+debug() {
+  log "debug" "$1"
+}
+
 ensure_running_in_container_or_exit() {
   { test -f "/.dockerenv" || test -n "$KUBERNETES_SERVICE_PORT"; } && return 0
 
@@ -176,8 +182,8 @@ EOF
 
 run_update() {
   pushd /app || return 1
-  info "Running status update"
-  ENV_FILE="${ENV_FILE}" ruby bin/update.rb 2>&1
+  info "Running status update with log level $LOG_LEVEL"
+  LOG_LEVEL="${LOG_LEVEL}" ENV_FILE="${ENV_FILE}" ruby bin/update.rb 2>&1
   rc=$?
   popd || return 1
   return "$rc"
@@ -197,7 +203,14 @@ ensure_running_in_container_or_exit
 ensure_prerequisites_met_or_exit
 
 info "Using environment: $ENV_FILE"
-if result=$(run_update)
+result=$(run_update)
+rc="$?"
+if test "${LOG_LEVEL,,}" == 'debug'
+then
+  debug "Last status update run:"
+  info "$result"
+fi
+if test "$rc" == 0
 then
   info "Status update was successful"
   test -f "$(_custom_status_file)" && _delete_custom_status_sentinel
