@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 DEFAULT_ENV_FILE="${TOPLEVEL}/.env"
 DEFAULT_UPDATE_STATUS_STORAGE_DIR=/tmp
+DEFAULT_ENDPOINT_TIMEOUT_THRESHOLD=5
 TOPLEVEL="$(realpath "$(dirname "$0")/..")"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
 UPDATE_STATUS_STORAGE_DIR="${UPDATE_STATUS_STORAGE_DIR:-$DEFAULT_UPDATE_STATUS_STORAGE_DIR}"
+ENDPOINT_TIMEOUT_THRESHOLD="${ENDPOINT_TIMEOUT_THRESHOLD:-$DEFAULT_ENDPOINT_TIMEOUT_THRESHOLD}"
 LOG_LEVEL="${LOG_LEVEL:-info}"
 
 usage() {
@@ -34,6 +36,10 @@ ENVIRONMENT VARIABLES
   SMTP_EMAIL_TO               The email address to send failure emails to.
 
   LOG_LEVEL                   Logging verbosity for the app.
+
+  ENDPOINT_TIMEOUT_THRESHOLD  The number of times the TripIt API will need to timeout
+                              before sending an email.
+                              (Default: $DEFAULT_ENDPOINT_TIMEOUT_THRESHOLD)
 NOTE
 
   - All environment variables supported by Slack Status Bot are also
@@ -90,25 +96,44 @@ _environment() {
   basename "$ENV_FILE"
 }
 
-_custom_status_file() {
-  printf "%s/.custom_status_sentinel_%s" \
+_slack_custom_status_file() {
+  printf "%s/.slack_custom_status_sentinel_%s" \
     "$UPDATE_STATUS_STORAGE_DIR" \
     "$(base64 -w 0 <<< "$(_environment)")"
 }
 
-_set_custom_status_sentinel() {
+_tripit_endpoint_timeout_count_file() {
+  printf "%s/.tripit_endpoint_timeout_count_%s" \
+    "$UPDATE_STATUS_STORAGE_DIR" \
+    "$(base64 -w 0 <<< "$(_environment)")"
+}
+
+_clear_tripit_endpoint_timeout_count() {
+  echo 0 > "$(_tripit_endpoint_timeout_count_file)"
+}
+
+_tripit_endpoint_timeout_count() {
+  test -f "$(_tripit_endpoint_timeout_count_file)" || _clear_tripit_endpoint_timeout_count
+  cat "$(_tripit_endpoint_timeout_count_file)"
+}
+
+_increase_tripit_endpoint_timeout_count() {
+  echo "$(_tripit_endpoint_timeout_count) + 1" | bc > "$(_tripit_endpoint_timeout_count_file)"
+}
+
+_set_slack_custom_status_sentinel() {
   info "Setting custom status sentinel"
   now=$(date +%s)
   one_hour_in_seconds=3600
-  echo "$one_hour_in_seconds + $now" | bc > "$(_custom_status_file)"
+  echo "$one_hour_in_seconds + $now" | bc > "$(_slack_custom_status_file)"
 }
 
-_delete_custom_status_sentinel() {
-  rm "$(_custom_status_file)"
+_delete_slack_custom_status_sentinel() {
+  rm "$(_slack_custom_status_file)"
 }
 
-_custom_status_sentinel_expired() {
-  expiry=$(cat "$(_custom_status_file)")
+_slack_custom_status_sentinel_expired() {
+  expiry=$(cat "$(_slack_custom_status_file)")
   now=$(date +%s)
   debug "expiry: $expiry; now: $now; expired? $(test "$now" -gt "$expiry"; echo $?)"
   test "$now" -gt "$expiry"
@@ -160,14 +185,34 @@ EOF
 )"
 }
 
-custom_status_set() {
+slack_custom_status_set() {
   local result
   result="$1"
   grep -q "Current status has not expired yet" <<< "$result"
 }
 
-send_custom_status_email() {
-  if ! test -f "$(_custom_status_file)" || _custom_status_sentinel_expired
+tripit_endpoint_request_timed_out() {
+  grep -q "Endpoint request timed out" <<< "$1"
+}
+
+send_tripit_endpoint_timeout_email() {
+  debug "TripIt endpoint timeouts: $(_tripit_endpoint_timeout_count); threshold: $ENDPOINT_TIMEOUT_THRESHOLD"
+  if test "$(_tripit_endpoint_timeout_count)" -ge "$ENDPOINT_TIMEOUT_THRESHOLD"
+  then
+    info "Endpoint timeout threshold crossed. Sending email."
+    _send_email '[ERROR] TripIt endpoint not responding' "$(cat <<-EOF
+Environment: $(_environment)
+
+The TripIt API endpoint has not responded the last five times. It might be down.
+EOF
+)"
+    _clear_tripit_endpoint_timeout_count
+  fi
+  _increase_tripit_endpoint_timeout_count
+}
+
+send_slack_custom_status_email() {
+  if ! test -f "$(_slack_custom_status_file)" || _slack_custom_status_sentinel_expired
   then
     _send_email '[WARN] Custom status active' "$(cat <<-EOF
 Environment: $(_environment)
@@ -176,9 +221,9 @@ A custom status is currently set. This alert will be sent every hour during
 which the status is set.
 EOF
 )"
-    if test -f "$(_custom_status_file)"
-    then info "Custom status sentinel set; set to expire on $(cat _custom_status_file)"
-    else _set_custom_status_sentinel
+    if test -f "$(_slack_custom_status_file)"
+    then info "Custom status sentinel set; set to expire on $(cat _slack_custom_status_file)"
+    else _set_slack_custom_status_sentinel
     fi
   fi
 }
@@ -216,13 +261,20 @@ fi
 if test "$rc" == 0
 then
   info "Status update was successful"
-  test -f "$(_custom_status_file)" && _delete_custom_status_sentinel
+  _delete_slack_custom_status_sentinel
+  _clear_tripit_endpoint_timeout_count
   exit 0
 fi
-if custom_status_set "$result"
+if slack_custom_status_set "$result"
 then
   warn "Custom status set"
-  send_custom_status_email
+  send_slack_custom_status_email
+  exit 1
+fi
+if tripit_endpoint_request_timed_out "$result"
+then
+  warn "TripIt Endpoint request timed out"
+  send_tripit_endpoint_timeout_email
   exit 1
 fi
 error "Status update was not successful: $result"
